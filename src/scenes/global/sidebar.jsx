@@ -109,7 +109,7 @@ const Sidebar = () => {
                   Pikachu
                 </Typography>
                 <Typography variant="h5" color={colors.orangeAccent[400]}>
-                  VP Pokemon Admin
+                  Pokemon Admin
                 </Typography>
               </Box>
             </Box>
@@ -134,7 +134,7 @@ const Sidebar = () => {
             />
             <Item
               title="Device Configuration"
-              to="/team"
+              to="/device-config"
               icon={<DevicesOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

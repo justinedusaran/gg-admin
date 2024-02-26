@@ -10,10 +10,23 @@ import { tokens } from "../../theme";
 const FAQ = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const currentDate = new Date();
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  };
+  const formattedDate = currentDate.toLocaleDateString(undefined, options);
+
   return (
     <Box m="20px">
-      <Header title="FAQ" subtitle="Frequently Asked Questions" />
-
+      <Header
+        title="Frequently Asked Questions"
+        subtitle={`${formattedDate}`}
+      />
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography color={colors.orangeAccent[500]} variant="h5">

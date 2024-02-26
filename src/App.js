@@ -1,11 +1,13 @@
-import { ColorModeContext, useMode } from './theme';
-import { CssBaseline, ThemeProvider } from '@mui/material';
-import { Routes, Route } from 'react-router-dom';
-import Topbar from './scenes/global/topbar';
-import Sidebar from './scenes/global/sidebar';
-import Dashboard from './scenes/dashboard';
-import FAQ from './scenes/faq';
-import Geography from './scenes/location';
+import { ColorModeContext, useMode } from "./theme";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { Routes, Route } from "react-router-dom";
+import Topbar from "./scenes/global/topbar";
+import Sidebar from "./scenes/global/sidebar";
+import Dashboard from "./scenes/dashboard";
+import FAQ from "./scenes/faq";
+import Geography from "./scenes/location";
+import HistoricalData from "./scenes/historical";
+import DeviceConfig from "./scenes/device-config";
 // import Team from "./scenes/team";
 // import Invoices from "./scenes/invoices";
 // import Contacts from "./scenes/contacts";
@@ -31,6 +33,8 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/location" element={<Geography />} />
+              <Route path="/device-config" element={<DeviceConfig />} />
+              <Route path="/historical" element={<HistoricalData />} />
             </Routes>
           </main>
         </div>
