@@ -1,7 +1,7 @@
 import { Box, useTheme } from "@mui/material";
-import GeographyChart from "../../components/geo-chart";
 import Header from "../../components/header";
 import { tokens } from "../../theme";
+import { GoogleMap } from "../../data/gmaps";
 
 const Geography = () => {
   const theme = useTheme();
@@ -21,13 +21,7 @@ const Geography = () => {
     <Box m="20px">
       <Header title="Device Location" subtitle={`${formattedDate}`} />
 
-      <Box
-        height="70vh"
-        border={`1px solid ${colors.gray[700]}`}
-        borderRadius="8px"
-      >
-        <GeographyChart />
-      </Box>
+      <GoogleMap />
     </Box>
   );
 };
