@@ -106,10 +106,10 @@ const Sidebar = () => {
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
-                  Pikachu
+                  GutterGuard
                 </Typography>
                 <Typography variant="h5" color={colors.orangeAccent[400]}>
-                  Pokemon Admin
+                  Admin Access
                 </Typography>
               </Box>
             </Box>
