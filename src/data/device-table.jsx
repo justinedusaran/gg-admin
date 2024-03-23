@@ -69,9 +69,9 @@ export default function DeviceManagement() {
   const [rows, setRows] = React.useState([
     createData(
       "id83428342",
-      "United States",
-      "US.jpg",
-      "New York",
+      "United Nations",
+      "UN.jpg",
+      "Taft Ave, Manila",
       DEFAULT_CLOG_STATUS
     ),
   ]);
