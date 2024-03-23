@@ -81,7 +81,7 @@ export const tokens = (mode) => ({
           600: "#434957",
           700: "#727681",
           800: "#a1a4ab",
-          900: "#d0d1d5",
+          900: "#ffffff",
         },
         orangeAccent: {
           100: "#312312",

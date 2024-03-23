@@ -1,6 +1,7 @@
 import { Box, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import Header from "../../components/header";
+import DeviceManagement from "../../data/device-table";
 
 const DeviceConfig = () => {
   const theme = useTheme();
@@ -20,8 +21,10 @@ const DeviceConfig = () => {
   return (
     <Box m="20px">
       {/* HEADER */}
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="Device Configuration" subtitle={`${formattedDate}`} />
+      <Header title="Device Configuration" subtitle={`${formattedDate}`} />
+      {/* TABLE */}
+      <Box mt={1}>
+        <DeviceManagement />
       </Box>
     </Box>
   );
