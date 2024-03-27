@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useEffect, useState } from "react";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -11,8 +11,10 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import { MenuItem } from "@mui/material";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../theme";
+import { database } from "../data/firebase/firebase";
 
 const DEFAULT_CLOG_STATUS = false;
 
@@ -66,6 +68,26 @@ export default function DeviceManagement() {
       DEFAULT_CLOG_STATUS
     ),
   ]);
+  const [idOptions, setIdOptions] = useState([]);
+
+  useEffect(() => {
+    const fetchIDsFromFirebase = async () => {
+      try {
+        const ref = database.ref("GutterDevices/Id"); // Get the reference to the desired location in the database
+        const snapshot = await ref.once("value"); // Fetch the data once from the reference
+        const ids = snapshot.val() ? Object.values(snapshot.val()) : [];
+        setIdOptions(ids);
+      } catch (error) {
+        console.error("Error fetching IDs from Firebase:", error);
+      }
+    };
+
+    fetchIDsFromFirebase();
+
+    return () => {
+      // You may need to detach listeners or perform cleanup here, depending on your use case
+    };
+  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -117,7 +139,7 @@ export default function DeviceManagement() {
                         hover
                         role="checkbox"
                         tabIndex={-1}
-                        key={row.code}
+                        key={row.id} // Fix key value, use 'id' instead of 'code'
                       >
                         {columns.map((column) => {
                           const value = row[column.id];
@@ -154,13 +176,20 @@ export default function DeviceManagement() {
             New Device
           </Typography>
           <TextField
+            select
             label="ID"
             variant="outlined"
             fullWidth
             sx={{ marginBottom: 2 }}
             value={idInput}
             onChange={(e) => setIdInput(e.target.value)}
-          />
+          >
+            {idOptions.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
             label="Name"
             variant="outlined"

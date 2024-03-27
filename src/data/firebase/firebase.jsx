@@ -3,8 +3,9 @@ import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: " ",
-  databaseURL: " ",
+  apiKey: "AIzaSyCMamClOkwHXPfWjdYa64R1AIAQbuuPw1k",
+  databaseURL:
+    "https://dp-gutterguard-default-rtdb.asia-southeast1.firebasedatabase.app/",
 };
 
 const app = initializeApp(firebaseConfig);
