@@ -63,7 +63,6 @@ export default function DeviceManagement() {
     createData(
       "id83428342",
       "United Nations",
-      "UN.jpg",
       "Taft Ave, Manila",
       DEFAULT_CLOG_STATUS
     ),
@@ -73,8 +72,8 @@ export default function DeviceManagement() {
   useEffect(() => {
     const fetchIDsFromFirebase = async () => {
       try {
-        const ref = database.ref("GutterDevices/Id"); // Get the reference to the desired location in the database
-        const snapshot = await ref.once("value"); // Fetch the data once from the reference
+        const ref = database.ref("GutterDevices/Id");
+        const snapshot = await ref.once("value");
         const ids = snapshot.val() ? Object.values(snapshot.val()) : [];
         setIdOptions(ids);
       } catch (error) {
@@ -85,7 +84,7 @@ export default function DeviceManagement() {
     fetchIDsFromFirebase();
 
     return () => {
-      // You may need to detach listeners or perform cleanup here, depending on your use case
+      
     };
   }, []);
 
