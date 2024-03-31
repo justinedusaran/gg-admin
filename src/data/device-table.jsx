@@ -46,7 +46,7 @@ export default function DeviceManagement() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(8);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [addressInput, setAddressInput] = useState("");
@@ -171,7 +171,7 @@ export default function DeviceManagement() {
             </Table>
           </TableContainer>
           <TablePagination
-            rowsPerPageOptions={[10, 25, 100]}
+            rowsPerPageOptions={[8, 16, 24]}
             component="div"
             count={rows.length}
             rowsPerPage={rowsPerPage}

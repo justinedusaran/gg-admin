@@ -1,9 +1,9 @@
 import { Box, useTheme } from "@mui/material";
 import Header from "../../components/header";
 import { tokens } from "../../theme";
-import { GoogleMap } from "../../data/gmaps";
+import DeviceOverview from "../../data/device-overview";
 
-const Geography = () => {
+const Overview = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const currentDate = new Date();
@@ -19,11 +19,11 @@ const Geography = () => {
 
   return (
     <Box m="20px">
-      <Header title="Device Location" subtitle={`${formattedDate}`} />
+      <Header title="Device Overview" subtitle={`${formattedDate}`} />
 
-      <GoogleMap />
+      <DeviceOverview />
     </Box>
   );
 };
 
-export default Geography;
+export default Overview;
