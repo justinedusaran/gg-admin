@@ -15,9 +15,7 @@ import { MenuItem } from "@mui/material";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../theme";
 import initializeFirebase from "../data/firebase/firebase";
-import { ref, onValue } from "firebase/database";
-
-const DEFAULT_CLOG_STATUS = false;
+import { ref, get, update } from "firebase/database";
 
 const columns = [
   {
@@ -38,17 +36,10 @@ const columns = [
     minWidth: 100,
     align: "center",
   },
-  {
-    id: "isClogged",
-    label: "Clog Status",
-    minWidth: 100,
-    align: "center",
-    format: (value) => (value ? "Clogged" : "Clear"),
-  },
 ];
 
-function createData(id, name, address, isClogged) {
-  return { id, name, address, isClogged };
+function createData(id, name, address) {
+  return { id, name, address };
 }
 
 export default function DeviceManagement() {
@@ -56,48 +47,40 @@ export default function DeviceManagement() {
   const colors = tokens(theme.palette.mode);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [idInput, setIdInput] = useState("");
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [addressInput, setAddressInput] = useState("");
-  const [rows, setRows] = useState([
-    createData(
-      "id83428342",
-      "United Nations",
-      "Taft Ave, Manila",
-      DEFAULT_CLOG_STATUS
-    ),
-  ]);
+  const [rows, setRows] = useState([]);
   const [idOptions, setIdOptions] = useState([]);
+  const [isButtonClicked, setIsButtonClicked] = useState(false);
+  const database = initializeFirebase();
 
   useEffect(() => {
-    const database = initializeFirebase();
     const paramPath = "/GutterLocations";
     const paramRef = ref(database, paramPath);
 
-    const fetchDataFromFirebase = (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const ids = Object.keys(data);
-        setIdOptions(ids);
-      } else {
-        console.log("No data available under GutterLocations.");
+    const fetchDataFromFirebase = async () => {
+      try {
+        const snapshot = await get(paramRef);
+        const data = snapshot.val();
+        if (data) {
+          const gutterLocations = Object.entries(data).map(
+            ([id, { name, address }]) => createData(id, name, address)
+          );
+          setRows(gutterLocations);
+          setIdOptions(gutterLocations.map((location) => location.id));
+        } else {
+          console.log("No data available under GutterLocations.");
+        }
+      } catch (error) {
+        console.error("Error fetching data from Firebase:", error);
       }
     };
 
-    const handleError = (error) => {
-      console.error("Error fetching data from Firebase:", error);
-      // You can handle errors, such as displaying an error message to the user.
-    };
+    fetchDataFromFirebase();
 
-    // Subscribe to changes and fetch initial data
-    const unsubscribe = onValue(paramRef, fetchDataFromFirebase, handleError);
-
-    // Cleanup function
-    return () => {
-      // Unsubscribe from Firebase listener to prevent memory leaks
-      unsubscribe();
-    };
-  }, []);
+    return () => {};
+  }, [database]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -108,17 +91,49 @@ export default function DeviceManagement() {
     setPage(0);
   };
 
-  const handleAddDevice = () => {
-    const newDevice = createData(
-      idInput,
-      nameInput,
-      addressInput,
-      DEFAULT_CLOG_STATUS
-    );
-    setRows([...rows, newDevice]);
-    setIdInput("");
-    setNameInput("");
-    setAddressInput("");
+  const handleAddDevice = async () => {
+    setIsButtonClicked(true);
+    if (selectedDeviceId && nameInput && addressInput) {
+      const rowIndex = rows.findIndex((row) => row.id === selectedDeviceId);
+      if (rowIndex !== -1) {
+        const updatedRow = rows[rowIndex];
+        updatedRow.name = nameInput;
+        updatedRow.address = addressInput;
+        try {
+          const snapshot = await get(
+            ref(database, `/GutterLocations/${selectedDeviceId}`)
+          );
+          const existingData = snapshot.val();
+          if (existingData) {
+            const updatedData = {
+              ...existingData,
+              name: nameInput,
+              address: addressInput,
+            };
+            await update(
+              ref(database, `/GutterLocations/${selectedDeviceId}`),
+              updatedData
+            );
+            const newRows = [...rows];
+            newRows[rowIndex] = updatedRow;
+            setRows(newRows);
+            setNameInput("");
+            setAddressInput("");
+            setSelectedDeviceId("");
+            setIsButtonClicked(false);
+            console.log("Device updated successfully!");
+          } else {
+            console.log("No data found for the selected device ID.");
+          }
+        } catch (error) {
+          console.error("Error updating device:", error);
+        }
+      } else {
+        console.log("Row index not found.");
+      }
+    } else {
+      console.log("Please fill all required fields.");
+    }
   };
 
   return (
@@ -147,11 +162,7 @@ export default function DeviceManagement() {
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                       {columns.map((column) => (
                         <TableCell key={column.id} align={column.align}>
-                          {column.id === "isClogged"
-                            ? row.isClogged
-                              ? "Clogged"
-                              : "Clear"
-                            : row[column.id]}
+                          {row[column.id]}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -173,7 +184,7 @@ export default function DeviceManagement() {
       <Grid item xs={4}>
         <Paper sx={{ padding: 2 }}>
           <Typography variant="h4" sx={{ fontWeight: "bold", marginBottom: 2 }}>
-            New Device
+            Configure Device
           </Typography>
           <TextField
             select
@@ -195,22 +206,23 @@ export default function DeviceManagement() {
               },
             }}
             sx={{ marginBottom: 2 }}
-            value={idInput}
-            onChange={(e) => setIdInput(e.target.value)}
+            value={selectedDeviceId}
+            onChange={(e) => setSelectedDeviceId(e.target.value)}
+            required
+            error={isButtonClicked && !selectedDeviceId}
+            helperText={
+              isButtonClicked && !selectedDeviceId && "ID is required"
+            }
           >
-            {idOptions && idOptions.length > 0 ? (
-              idOptions.map((option) => (
-                <MenuItem
-                  key={option}
-                  value={option}
-                  style={{ color: colors.primary[100] }}
-                >
-                  {option}
-                </MenuItem>
-              ))
-            ) : (
-              <MenuItem disabled>Loading...</MenuItem>
-            )}
+            {idOptions.map((option) => (
+              <MenuItem
+                key={option}
+                value={option}
+                style={{ color: colors.primary[100] }}
+              >
+                {option}
+              </MenuItem>
+            ))}
           </TextField>
           <TextField
             label="Name"
@@ -224,6 +236,9 @@ export default function DeviceManagement() {
             sx={{ marginBottom: 2 }}
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
+            required
+            error={isButtonClicked && !nameInput}
+            helperText={isButtonClicked && !nameInput && "Name is required"}
           />
           <TextField
             label="Address"
@@ -237,6 +252,11 @@ export default function DeviceManagement() {
             sx={{ marginBottom: 2 }}
             value={addressInput}
             onChange={(e) => setAddressInput(e.target.value)}
+            required
+            error={isButtonClicked && !addressInput}
+            helperText={
+              isButtonClicked && !addressInput && "Address is required"
+            }
           />
           <Button
             variant="contained"
@@ -250,7 +270,7 @@ export default function DeviceManagement() {
             onClick={handleAddDevice}
             fullWidth
           >
-            Add Device
+            Update Device
           </Button>
         </Paper>
       </Grid>
