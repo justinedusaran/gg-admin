@@ -14,7 +14,8 @@ import Typography from "@mui/material/Typography";
 import { MenuItem } from "@mui/material";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../theme";
-import { database } from "../data/firebase/firebase";
+import initializeFirebase from "../data/firebase/firebase";
+import { ref, onValue } from "firebase/database";
 
 const DEFAULT_CLOG_STATUS = false;
 
@@ -36,7 +37,6 @@ const columns = [
     label: "Address",
     minWidth: 100,
     align: "center",
-    format: (value) => value.toLocaleString("en-US"),
   },
   {
     id: "isClogged",
@@ -54,12 +54,12 @@ function createData(id, name, address, isClogged) {
 export default function DeviceManagement() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [idInput, setIdInput] = React.useState("");
-  const [nameInput, setNameInput] = React.useState("");
-  const [addressInput, setAddressInput] = React.useState("");
-  const [rows, setRows] = React.useState([
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [idInput, setIdInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
+  const [addressInput, setAddressInput] = useState("");
+  const [rows, setRows] = useState([
     createData(
       "id83428342",
       "United Nations",
@@ -70,21 +70,32 @@ export default function DeviceManagement() {
   const [idOptions, setIdOptions] = useState([]);
 
   useEffect(() => {
-    const fetchIDsFromFirebase = async () => {
-      try {
-        const ref = database.ref("GutterDevices/Id");
-        const snapshot = await ref.once("value");
-        const ids = snapshot.val() ? Object.values(snapshot.val()) : [];
+    const database = initializeFirebase();
+    const paramPath = "/GutterLocations";
+    const paramRef = ref(database, paramPath);
+
+    const fetchDataFromFirebase = (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const ids = Object.keys(data);
         setIdOptions(ids);
-      } catch (error) {
-        console.error("Error fetching IDs from Firebase:", error);
+      } else {
+        console.log("No data available under GutterLocations.");
       }
     };
 
-    fetchIDsFromFirebase();
+    const handleError = (error) => {
+      console.error("Error fetching data from Firebase:", error);
+      // You can handle errors, such as displaying an error message to the user.
+    };
 
+    // Subscribe to changes and fetch initial data
+    const unsubscribe = onValue(paramRef, fetchDataFromFirebase, handleError);
+
+    // Cleanup function
     return () => {
-      
+      // Unsubscribe from Firebase listener to prevent memory leaks
+      unsubscribe();
     };
   }, []);
 
@@ -132,29 +143,19 @@ export default function DeviceManagement() {
               <TableBody>
                 {rows
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => {
-                    return (
-                      <TableRow
-                        hover
-                        role="checkbox"
-                        tabIndex={-1}
-                        key={row.id} // Fix key value, use 'id' instead of 'code'
-                      >
-                        {columns.map((column) => {
-                          const value = row[column.id];
-                          return (
-                            <TableCell key={column.id} align={column.align}>
-                              {column.id === "isClogged"
-                                ? row.isClogged
-                                  ? "Clogged"
-                                  : "Clear"
-                                : row[column.id]}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    );
-                  })}
+                  .map((row) => (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+                      {columns.map((column) => (
+                        <TableCell key={column.id} align={column.align}>
+                          {column.id === "isClogged"
+                            ? row.isClogged
+                              ? "Clogged"
+                              : "Clear"
+                            : row[column.id]}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -177,30 +178,62 @@ export default function DeviceManagement() {
           <TextField
             select
             label="ID"
-            variant="outlined"
+            variant="filled"
             fullWidth
+            InputLabelProps={{
+              style: {
+                color: colors.primary[200],
+              },
+            }}
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  style: {
+                    backgroundColor: colors.primary[900],
+                  },
+                },
+              },
+            }}
             sx={{ marginBottom: 2 }}
             value={idInput}
             onChange={(e) => setIdInput(e.target.value)}
           >
-            {idOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
+            {idOptions && idOptions.length > 0 ? (
+              idOptions.map((option) => (
+                <MenuItem
+                  key={option}
+                  value={option}
+                  style={{ color: colors.primary[100] }}
+                >
+                  {option}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem disabled>Loading...</MenuItem>
+            )}
           </TextField>
           <TextField
             label="Name"
-            variant="outlined"
+            variant="filled"
             fullWidth
+            InputLabelProps={{
+              style: {
+                color: colors.primary[200],
+              },
+            }}
             sx={{ marginBottom: 2 }}
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
           />
           <TextField
             label="Address"
-            variant="outlined"
+            variant="filled"
             fullWidth
+            InputLabelProps={{
+              style: {
+                color: colors.primary[200],
+              },
+            }}
             sx={{ marginBottom: 2 }}
             value={addressInput}
             onChange={(e) => setAddressInput(e.target.value)}
