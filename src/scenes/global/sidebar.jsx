@@ -124,17 +124,17 @@ const Sidebar = () => {
               isCollapsed={isCollapsed}
             />
             <Item
-              title="Device Overview"
-              to="/overview"
-              icon={<MapOutlinedIcon />}
+              title="Device Configuration"
+              to="/device-config"
+              icon={<DevicesOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}
             />
             <Item
-              title="Device Configuration"
-              to="/device-config"
-              icon={<DevicesOutlinedIcon />}
+              title="Device Location"
+              to="/device-location"
+              icon={<MapOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}

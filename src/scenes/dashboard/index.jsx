@@ -1,6 +1,7 @@
 import { Box, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import Header from "../../components/header";
+import DashboardComponents from "../../data/dashboard";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -23,9 +24,7 @@ const Dashboard = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Header title="Dashboard" subtitle={`${formattedDate}`} />
       </Box>
-      {/* Active devices with current clog status */}
-      {/* Map location if kaya */}
-      {/* historical data within 24 hrs */}
+      <DashboardComponents />
     </Box>
   );
 };
