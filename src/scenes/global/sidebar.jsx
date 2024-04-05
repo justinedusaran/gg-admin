@@ -86,16 +86,14 @@ const Sidebar = () => {
             )}
           </MenuItem>
 
-          {/* user */}
           {!isCollapsed && (
             <Box mb="25px">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <img
-                  alt="profile-user"
+                  alt="gutterguard-logo"
                   width="100px"
                   height="100px"
-                  src={"../../assets/user.png"}
-                  style={{ cursor: "pointer", borderRadius: "50%" }}
+                  src={"../../assets/ggutterguard-icon.png"}
                 />
               </Box>
 
