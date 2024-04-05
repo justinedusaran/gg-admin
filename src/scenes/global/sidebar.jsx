@@ -86,6 +86,7 @@ const Sidebar = () => {
             )}
           </MenuItem>
 
+          {/* user */}
           {!isCollapsed && (
             <Box mb="25px">
               <Box display="flex" justifyContent="center" alignItems="center">

@@ -30,18 +30,6 @@ const columns = [
     align: "center",
   },
   {
-    id: "latitude",
-    label: "Latitude",
-    minWidth: 100,
-    align: "center",
-  },
-  {
-    id: "longitude",
-    label: "Longitude",
-    minWidth: 100,
-    align: "center",
-  },
-  {
     id: "isClogged",
     label: "Clog Status",
     minWidth: 100,
@@ -69,7 +57,7 @@ export default function DeviceOverview() {
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(8);
-  const [center, setCenter] = useState([14.5805353, 120.9856868]);
+  const [center, setCenter] = useState([14.577694, 120.9856868]);
   const mapRef = useRef();
 
   useEffect(() => {
@@ -152,40 +140,36 @@ export default function DeviceOverview() {
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <div style={{ height: "400px", width: "100%" }}>
-          <MapContainer
-            center={center}
-            zoom={16}
-            ref={mapRef}
-            style={{ height: "400px", width: "100%" }}
-          >
-            <TileLayer
-              url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
-              attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
-            />
-            {rows.map((row, index) => (
-              <Marker
-                key={index}
-                position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
-                icon={row.clogStatus === "Clogged" ? clogIcon : clearIcon}
-              >
-                <Popup>
-                  <div>
-                    <h2>{row.name}</h2>
-                    <p>Address: {row.address}</p>
-                    <p>Latitude: {row.latitude}</p>
-                    <p>Longitude: {row.longitude}</p>
-                    <p>Clog Status: {row.clogStatus}</p>
-                    <p>Maintenance Status: {row.maintenanceStatus}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        </div>
+      <Grid item xs={12} md={6}>
+        <MapContainer
+          center={center}
+          zoom={16}
+          ref={mapRef}
+          style={{ height: "500px", width: "100%" }}
+        >
+          <TileLayer
+            url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
+            attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
+          />
+          {rows.map((row, index) => (
+            <Marker
+              key={index}
+              position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
+              icon={row.clogStatus === "Clogged" ? clogIcon : clearIcon}
+            >
+              <Popup>
+                <div>
+                  <h2>{row.name}</h2>
+                  <p>Address: {row.address}</p>
+                  <p>Clog Status: {row.clogStatus}</p>
+                  <p>Maintenance Status: {row.maintenanceStatus}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
       </Grid>
-      <Grid item xs={12} paddingBottom={3}>
+      <Grid item xs={12} md={6} paddingBottom={3}>
         <Paper>
           <TableContainer>
             <Table stickyHeader aria-label="sticky table">
@@ -209,8 +193,6 @@ export default function DeviceOverview() {
                     <TableRow key={row.name}>
                       <TableCell align="center">{row.name}</TableCell>
                       <TableCell align="center">{row.address}</TableCell>
-                      <TableCell align="center">{row.latitude}</TableCell>
-                      <TableCell align="center">{row.longitude}</TableCell>
                       <TableCell align="center">{row.clogStatus}</TableCell>
                       <TableCell align="center">
                         {row.maintenanceStatus}
