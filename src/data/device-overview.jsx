@@ -156,7 +156,7 @@ export default function DeviceOverview() {
         <div style={{ height: "400px", width: "100%" }}>
           <MapContainer
             center={center}
-            zoom={17}
+            zoom={16}
             ref={mapRef}
             style={{ height: "400px", width: "100%" }}
           >
