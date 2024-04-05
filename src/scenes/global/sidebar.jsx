@@ -147,14 +147,6 @@ const Sidebar = () => {
               setSelected={setSelected}
               isCollapsed={isCollapsed}
             />
-            <Item
-              title="FAQs"
-              to="/faq"
-              icon={<HelpOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-              isCollapsed={isCollapsed}
-            />
           </Box>
         </Menu>
       </ProSidebar>

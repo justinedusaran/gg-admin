@@ -4,7 +4,6 @@ import { Routes, Route } from "react-router-dom";
 import Topbar from "./scenes/global/topbar";
 import Sidebar from "./scenes/global/sidebar";
 import Dashboard from "./scenes/dashboard";
-import FAQ from "./scenes/faq";
 import Location from "./scenes/device-location";
 import HistoricalData from "./scenes/historical";
 import DeviceConfig from "./scenes/device-config";
@@ -31,7 +30,6 @@ function App() {
             <Topbar />
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/faq" element={<FAQ />} />
               <Route path="/device-location" element={<Location />} />
               <Route path="/device-config" element={<DeviceConfig />} />
               <Route path="/historical" element={<HistoricalData />} />
