@@ -7,15 +7,6 @@ import Dashboard from "./scenes/dashboard";
 import Location from "./scenes/device-location";
 import HistoricalData from "./scenes/historical";
 import DeviceConfig from "./scenes/device-config";
-// import Team from "./scenes/team";
-// import Invoices from "./scenes/invoices";
-// import Contacts from "./scenes/contacts";
-// import Bar from "./scenes/bar";
-// import Form from "./scenes/form";
-// import Line from "./scenes/line";
-// import Pie from "./scenes/pie";
-// import Geography from "./scenes/geography";
-// import Calendar from './scenes/calendar';
 
 function App() {
   const [theme, colorMode] = useMode();

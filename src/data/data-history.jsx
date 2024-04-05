@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Paper from "@mui/material/Paper";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
@@ -50,7 +50,6 @@ export default function DataHistory() {
               const {
                 name,
                 address,
-                maintenanceStatus,
                 isClogged,
                 clogHistory: originalClogHistory,
               } = deviceData;
@@ -73,7 +72,6 @@ export default function DataHistory() {
               return {
                 name,
                 address,
-                maintenanceStatus,
                 clogHistory,
               };
             }
@@ -110,8 +108,8 @@ export default function DataHistory() {
                 <TableRow>
                   <TableCell align="center">Timestamp</TableCell>
                   <TableCell align="center">Name</TableCell>
+                  <TableCell align="center">Address</TableCell>
                   <TableCell align="center">Clog Status</TableCell>
-                  <TableCell align="center">Maintenance Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -124,10 +122,8 @@ export default function DataHistory() {
                           {formatTimestamp(entry.timestamp)}
                         </TableCell>
                         <TableCell align="center">{row.name}</TableCell>
+                        <TableCell align="center">{row.address}</TableCell>
                         <TableCell align="center">{entry.status}</TableCell>
-                        <TableCell align="center">
-                          {row.maintenanceStatus}
-                        </TableCell>
                       </TableRow>
                     ))
                   )}
