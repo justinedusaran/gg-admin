@@ -12,7 +12,7 @@ const Topbar = () => {
     theme.palette.mode === "dark" ? colors.primary[400] : colors.gray[900];
 
   return (
-    <Box display="flex" justifyContent="flex-end" p={2}>
+    <Box display="flex" justifyContent="flex-end" p={1}>
       {/* icons */}
       <Box display="flex" alignItems="center">
         <IconButton onClick={colorMode.toggleColorMode}>

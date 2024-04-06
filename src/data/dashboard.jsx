@@ -56,7 +56,7 @@ const clearIcon = L.icon({
 export default function DashboardComponents() {
   const [rows, setRows] = useState([]);
   const [page1, setPage1] = useState(0);
-  const [page2] = useState(0);
+  const [page2, setPage2] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(3);
   const [center, setCenter] = useState([14.577694, 120.9856868]);
   const mapRef = useRef();
@@ -105,12 +105,23 @@ export default function DashboardComponents() {
               let clogHistory = [];
 
               if (isClogged) {
-                clogHistory = Object.entries(isClogged).map(
-                  ([timestamp, status]) => ({
+                const uniqueClogs = {};
+                Object.entries(isClogged).forEach(([timestamp, status]) => {
+                  if (
+                    !uniqueClogs[name] ||
+                    uniqueClogs[name].timestamp < timestamp
+                  ) {
+                    uniqueClogs[name] = { timestamp, status };
+                  }
+                });
+
+                clogHistory = Object.values(uniqueClogs).map(
+                  ({ timestamp, status }) => ({
                     timestamp,
                     status: status ? "Clogged" : "Cleared",
                   })
                 );
+
                 const latestStatus = clogHistory[clogHistory.length - 1];
                 if (latestStatus) {
                   clogStatus = latestStatus.status;
@@ -123,7 +134,7 @@ export default function DashboardComponents() {
                 longitude,
                 maintenanceStatus,
                 clogStatus,
-                clogHistory, // Add clogHistory field
+                clogHistory,
               };
             }
           );
@@ -154,9 +165,14 @@ export default function DashboardComponents() {
     setPage1(newPage);
   };
 
+  const handleChangePage2 = (event, newPage) => {
+    setPage2(newPage);
+  };
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage1(0);
+    setPage2(0);
   };
 
   return (
@@ -166,7 +182,7 @@ export default function DashboardComponents() {
           center={center}
           zoom={16}
           ref={mapRef}
-          style={{ height: "490px", width: "100%" }}
+          style={{ height: "525px", width: "100%" }}
         >
           <TileLayer
             url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
@@ -259,6 +275,7 @@ export default function DashboardComponents() {
                       .map((row, index) => (
                         <React.Fragment key={index}>
                           {row.clogHistory
+                            .slice(0, 3) // Limit to three rows
                             .sort(
                               (a, b) =>
                                 new Date(b.timestamp) - new Date(a.timestamp)
@@ -279,6 +296,14 @@ export default function DashboardComponents() {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[3]}
+                component="div"
+                count={rows.length}
+                rowsPerPage={rowsPerPage}
+                page={page2}
+                onPageChange={handleChangePage2}
+              />
             </Paper>
           </Grid>
         </Grid>

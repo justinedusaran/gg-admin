@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { tokens } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 import DevicesOutlinedIcon from "@mui/icons-material/DevicesOutlined";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
 const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
   const theme = useTheme();
@@ -23,7 +24,7 @@ const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
       icon={icon}
     >
       {!isCollapsed && <Typography>{title}</Typography>}
-      <Link to={to} />
+      <Link to={to} style={{ textDecoration: "none", color: "inherit" }} />
     </MenuItem>
   );
 };
@@ -31,15 +32,23 @@ const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
 const Sidebar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [selected, setSelected] = useState(
     localStorage.getItem("selectedItem") || "Dashboard"
   );
+  const location = useLocation();
 
   useEffect(() => {
-    // Store the selected item in local storage
+    setIsCollapsed(true);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("selectedItem", selected);
   }, [selected]);
+
+  if (location.pathname === "/") {
+    return null;
+  }
 
   return (
     <Box
@@ -123,7 +132,7 @@ const Sidebar = () => {
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
               title="Dashboard"
-              to="/"
+              to="/dashboard"
               icon={<HomeOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
@@ -154,7 +163,22 @@ const Sidebar = () => {
               isCollapsed={isCollapsed}
             />
           </Box>
+          <Menu iconShape="square">
+          <MenuItem
+            style={{
+              color: colors.gray[100],
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+            }}
+            icon={<ExitToAppIcon />}
+          >
+            {!isCollapsed && <Typography>Logout</Typography>}
+            <Link to="/" style={{ textDecoration: "none", color: "inherit" }} />
+          </MenuItem>
         </Menu>
+        </Menu>
+        
       </ProSidebar>
     </Box>
   );
