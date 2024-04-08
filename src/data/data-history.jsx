@@ -201,6 +201,36 @@ export default function DataHistory() {
       },
     ];
 
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          ticks: {
+            stepSize: 1,
+            precision: 0,
+          },
+        },
+      },
+      plugins: {
+        title: {
+          display: true,
+          text:
+            type === "minute"
+              ? "Clogging Frequency per Minute"
+              : "Clogging Frequency per Hour",
+          font: {
+            size: 14,
+          },
+        },
+      },
+    };
+
     const chartRef = type === "minute" ? chartRefMinute : chartRefHour;
 
     if (chartRef.current) {
@@ -213,23 +243,7 @@ export default function DataHistory() {
         labels: labels,
         datasets: datasets,
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            grid: {
-              display: false,
-            },
-          },
-          y: {
-            ticks: {
-              stepSize: 1,
-              precision: 0,
-            },
-          },
-        },
-      },
+      options: options,
     });
   };
 
@@ -243,7 +257,7 @@ export default function DataHistory() {
   };
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={2}>
       <Grid item xs={6}>
         <Paper>
           <TableContainer>
@@ -290,6 +304,7 @@ export default function DataHistory() {
           <canvas id="clogging-chart-minute" />
         </Paper>
         <Paper style={{ height: 260, marginTop: 15 }}>
+
           <canvas id="clogging-chart-hour" />
         </Paper>
       </Grid>

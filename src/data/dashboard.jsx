@@ -78,20 +78,12 @@ export default function DashboardComponents() {
                 }
               }
 
-              const mappedMaintenanceStatus = {
-                inprogress: "In progress",
-                nomaintenancereq: "No request",
-                pending: "Pending",
-              };
-
               return {
                 name,
                 address,
                 latitude,
                 longitude,
-                maintenanceStatus:
-                  mappedMaintenanceStatus[maintenanceStatus] ||
-                  "nomaintenancereq",
+                maintenanceStatus,
                 clogStatus,
                 clogHistory,
               };
@@ -108,7 +100,6 @@ export default function DashboardComponents() {
             ]);
           }
 
-          // Calculate maintenance status counts
           let counts = {
             pending: 0,
             nomaintenancereq: 0,
@@ -168,35 +159,54 @@ export default function DashboardComponents() {
         <Grid container spacing={3}>
           {Object.keys(maintenanceCounts).length > 0 && (
             <>
-              <Grid item xs={12} md={4}>
-                <Paper elevation={3} style={{ padding: "20px" }}>
-                  <h4 style={{ fontWeight: "normal" }}>
-                    {maintenanceCounts.pending} devices with pending maintenance
+              <Grid item xs={12} md={6}>
+                <Paper
+                  elevation={3}
+                  style={{ padding: "20px", textAlign: "center" }}
+                >
+                  <h4
+                    style={{
+                      fontWeight: "normal",
+                    }}
+                  >
+                    Pending Maintenance:
                   </h4>
+                  <h1>{maintenanceCounts.pending}</h1>
                 </Paper>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <Paper elevation={3} style={{ padding: "20px" }}>
+              <Grid item xs={12} md={6}>
+                <Paper
+                  elevation={3}
+                  style={{ padding: "20px", textAlign: "center" }}
+                >
                   <h4 style={{ fontWeight: "normal" }}>
-                    {maintenanceCounts.nomaintenancereq} devices with no
-                    maintenance requests
+                    Currently under maintenance:
                   </h4>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Paper elevation={3} style={{ padding: "20px" }}>
-                  <h4 style={{ fontWeight: "normal" }}>
-                    {maintenanceCounts.inprogress} devices in progress of
-                    maintenance
-                  </h4>
+                  <h1> {maintenanceCounts.inprogress}</h1>
                 </Paper>
               </Grid>
               <Grid item xs={12} md={12}>
-                <Paper elevation={3} style={{ padding: "20px" }}>
-                  <h4 style={{ fontWeight: "normal" }}>
-                    {rows.filter((row) => row.clogStatus === "Clogged").length}{" "}
-                    gutters are currently clogged
-                  </h4>
+                <Paper
+                  elevation={3}
+                  style={{ padding: "20px", textAlign: "center" }}
+                >
+                  <div style={{ display: "inline-block", textAlign: "left" }}>
+                    <h3
+                      style={{
+                        fontWeight: "normal",
+                        display: "inline-block",
+                        marginRight: "10px",
+                      }}
+                    >
+                      Clogged Gutters:
+                    </h3>
+                    <h1 style={{ display: "inline-block", margin: "0" }}>
+                      {
+                        rows.filter((row) => row.clogStatus === "Clogged")
+                          .length
+                      }
+                    </h1>
+                  </div>
                 </Paper>
               </Grid>
             </>

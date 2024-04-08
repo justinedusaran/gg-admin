@@ -58,10 +58,9 @@ export default function DeviceLocation() {
                 }
               }
 
-              // Map maintenance status values
               const mappedMaintenanceStatus = {
                 inprogress: "In progress",
-                nomaintenancereq: "No request",
+                nomaintenancereq: "No maintenance required",
                 pending: "Pending",
               };
 
