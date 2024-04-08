@@ -16,7 +16,9 @@ const DeviceConfig = () => {
     hour: "numeric",
     minute: "numeric",
   };
+
   const formattedDate = currentDate.toLocaleDateString(undefined, options);
+  
 
   return (
     <Box m="20px">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom"; // Import Link
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import initializeFirebase from "./firebase/firebase";
@@ -8,6 +9,9 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import cloggedIcon from "../icons/clogged-icon.svg";
 import clearedIcon from "../icons/cleared-icon.svg";
+import { useTheme } from "@emotion/react";
+import { tokens } from "../theme";
+import { Button } from "@mui/material";
 
 const clogIcon = L.icon({
   iconUrl: cloggedIcon,
@@ -20,6 +24,8 @@ const clearIcon = L.icon({
 });
 
 export default function DashboardComponents() {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const [rows, setRows] = useState([]);
   const [center, setCenter] = useState([14.577694, 120.9856868]);
   const mapRef = useRef();
@@ -185,12 +191,12 @@ export default function DashboardComponents() {
                   <h1> {maintenanceCounts.inprogress}</h1>
                 </Paper>
               </Grid>
-              <Grid item xs={12} md={12}>
+              <Grid item xs={12} md={6}>
                 <Paper
                   elevation={3}
                   style={{ padding: "20px", textAlign: "center" }}
                 >
-                  <div style={{ display: "inline-block", textAlign: "left" }}>
+                  <div style={{ textAlign: "left" }}>
                     <h3
                       style={{
                         fontWeight: "normal",
@@ -208,6 +214,28 @@ export default function DashboardComponents() {
                     </h1>
                   </div>
                 </Paper>
+              </Grid>
+              <Grid item xs={12} md={6} style={{ textAlign: "center" }}>
+                <Link to="/device-config">
+                  <Button
+                    variant="contained"
+                    sx={{
+                      backgroundColor: colors.orangeAccent[400],
+                      color: colors.primary[900],
+                      "&:hover": {
+                        backgroundColor: colors.orangeAccent[300],
+                      },
+                      borderRadius: "5px",
+                      padding: "10px 20px",
+                      width: "100%",
+                      height: "100%",
+                      fontSize: "18px",
+                    }}
+                    fullWidth
+                  >
+                    ADD NEW DEVICE
+                  </Button>
+                </Link>
               </Grid>
             </>
           )}

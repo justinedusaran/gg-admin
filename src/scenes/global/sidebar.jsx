@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
@@ -37,6 +37,19 @@ const Sidebar = () => {
     localStorage.getItem("selectedItem") || "Dashboard"
   );
   const location = useLocation();
+
+  useEffect(() => {
+    const pathname = location.pathname;
+    if (pathname.includes("/dashboard")) {
+      setSelected("Dashboard");
+    } else if (pathname.includes("/device-config")) {
+      setSelected("Device Configuration");
+    } else if (pathname.includes("/device-location")) {
+      setSelected("Device Location");
+    } else if (pathname.includes("/historical")) {
+      setSelected("History and Analytics");
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     setIsCollapsed(true);
@@ -164,21 +177,23 @@ const Sidebar = () => {
             />
           </Box>
           <Menu iconShape="square">
-          <MenuItem
-            style={{
-              color: colors.gray[100],
-              position: "absolute",
-              bottom: 0,
-              width: "100%",
-            }}
-            icon={<ExitToAppIcon />}
-          >
-            {!isCollapsed && <Typography>Logout</Typography>}
-            <Link to="/" style={{ textDecoration: "none", color: "inherit" }} />
-          </MenuItem>
+            <MenuItem
+              style={{
+                color: colors.gray[100],
+                position: "absolute",
+                bottom: 0,
+                width: "100%",
+              }}
+              icon={<ExitToAppIcon />}
+            >
+              {!isCollapsed && <Typography>Logout</Typography>}
+              <Link
+                to="/"
+                style={{ textDecoration: "none", color: "inherit" }}
+              />
+            </MenuItem>
+          </Menu>
         </Menu>
-        </Menu>
-        
       </ProSidebar>
     </Box>
   );
