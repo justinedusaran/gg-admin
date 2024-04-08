@@ -272,19 +272,26 @@ export default function DataHistory() {
               </TableHead>
               <TableBody>
                 {rows
+                  .map((row) =>
+                    row.clogHistory.map((entry, idx) => ({
+                      timestamp: entry.timestamp,
+                      name: row.name,
+                      address: row.address,
+                      status: entry.status,
+                    }))
+                  )
+                  .flat()
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row, index) =>
-                    row.clogHistory.map((entry, idx) => (
-                      <TableRow key={`${index}-${idx}`}>
-                        <TableCell align="center">
-                          {formatTimestamp(entry.timestamp)}
-                        </TableCell>
-                        <TableCell align="center">{row.name}</TableCell>
-                        <TableCell align="center">{row.address}</TableCell>
-                        <TableCell align="center">{entry.status}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  .map((entry, index) => (
+                    <TableRow key={index}>
+                      <TableCell align="center">
+                        {formatTimestamp(entry.timestamp)}
+                      </TableCell>
+                      <TableCell align="center">{entry.name}</TableCell>
+                      <TableCell align="center">{entry.address}</TableCell>
+                      <TableCell align="center">{entry.status}</TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
