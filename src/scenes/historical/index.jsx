@@ -22,7 +22,7 @@ const HistoricalData = () => {
     <Box m="20px">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="Historical Data" subtitle={`${formattedDate}`} />
+        <Header title="History and Analytics" subtitle={`${formattedDate}`} />
       </Box>
 
       <DataHistory />

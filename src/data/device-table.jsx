@@ -171,7 +171,7 @@ export default function DeviceManagement() {
             </Table>
           </TableContainer>
           <TablePagination
-            rowsPerPageOptions={[8, 16, 24]}
+            rowsPerPageOptions={[8]}
             component="div"
             count={rows.length}
             rowsPerPage={rowsPerPage}

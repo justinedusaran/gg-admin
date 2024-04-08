@@ -155,7 +155,7 @@ const Sidebar = () => {
               isCollapsed={isCollapsed}
             />
             <Item
-              title="Historical Data"
+              title="History and Analytics"
               to="/historical"
               icon={<BarChartOutlinedIcon />}
               selected={selected}

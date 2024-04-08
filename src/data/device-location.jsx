@@ -58,12 +58,20 @@ export default function DeviceLocation() {
                 }
               }
 
+              // Map maintenance status values
+              const mappedMaintenanceStatus = {
+                inprogress: "In progress",
+                nomaintenancereq: "No request",
+                pending: "Pending",
+              };
+
               return {
                 name,
                 address,
                 latitude,
                 longitude,
-                maintenanceStatus,
+                maintenanceStatus:
+                  mappedMaintenanceStatus[maintenanceStatus.toLowerCase()],
                 clogStatus,
               };
             }
