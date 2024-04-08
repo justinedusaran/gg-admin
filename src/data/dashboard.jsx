@@ -34,7 +34,6 @@ export default function DashboardComponents() {
   const [center, setCenter] = useState([14.577694, 120.9856868]);
   const mapRef = useRef();
   const chartRefHour = useRef(null);
-
   const [maintenanceCounts, setMaintenanceCounts] = useState({
     pending: 0,
     nomaintenancereq: 0,
@@ -65,26 +64,21 @@ export default function DashboardComponents() {
               let clogHistory = [];
 
               if (isClogged) {
-                const uniqueClogs = {};
-                Object.entries(isClogged).forEach(([timestamp, status]) => {
-                  if (
-                    !uniqueClogs[name] ||
-                    uniqueClogs[name].timestamp < timestamp
-                  ) {
-                    uniqueClogs[name] = { timestamp, status };
-                  }
-                });
-
-                clogHistory = Object.values(uniqueClogs).map(
-                  ({ timestamp, status }) => ({
+                const clogEvents = Object.entries(isClogged).map(
+                  ([timestamp, status]) => ({
                     timestamp,
-                    status: status ? "Clogged" : "Cleared",
+                    status: status ? "Clogged" : "Unclogged",
                   })
                 );
 
-                const latestStatus = clogHistory[clogHistory.length - 1];
-                if (latestStatus) {
-                  clogStatus = latestStatus.status;
+                // Sorting the clog events by timestamp
+                clogEvents.sort((a, b) => a.timestamp - b.timestamp);
+
+                // Taking the latest clog status
+                const latestClogEvent = clogEvents[clogEvents.length - 1];
+                if (latestClogEvent) {
+                  clogStatus = latestClogEvent.status;
+                  clogHistory = clogEvents;
                 }
               }
 
@@ -123,16 +117,14 @@ export default function DashboardComponents() {
           setMaintenanceCounts(counts);
 
           const cloggingEvents = {
-            true: [],
-            false: [],
+            Clogged: Array.from({ length: 24 }, () => 0),
+            Unclogged: Array.from({ length: 24 }, () => 0),
           };
 
           gutterLocations.forEach(({ clogHistory }) => {
             clogHistory.forEach(({ timestamp, status }) => {
-              cloggingEvents[status ? "true" : "false"].push({
-                timestamp,
-                status,
-              });
+              const hour = new Date(parseInt(timestamp)).getHours();
+              cloggingEvents[status][hour]++; // Increment the count for the corresponding hour
             });
           });
 
@@ -149,7 +141,11 @@ export default function DashboardComponents() {
   }, []);
 
   const drawChart = (cloggingEvents, type) => {
-    if (!cloggingEvents || !cloggingEvents.true || !cloggingEvents.false) {
+    if (
+      !cloggingEvents ||
+      !cloggingEvents.Clogged ||
+      !cloggingEvents.Unclogged
+    ) {
       console.error("cloggingEvents or its properties are undefined");
       return;
     }
@@ -157,23 +153,11 @@ export default function DashboardComponents() {
     const ctx = document.getElementById(`clogging-chart-${type}`);
 
     const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-    const clogged = Array.from({ length: 24 }, (_, i) => 0);
-    const unclogged = Array.from({ length: 24 }, (_, i) => 0);
-
-    cloggingEvents.true.forEach((event) => {
-      const hour = new Date(parseInt(event.timestamp)).getHours();
-      clogged[hour] += 1;
-    });
-
-    cloggingEvents.false.forEach((event) => {
-      const hour = new Date(parseInt(event.timestamp)).getHours();
-      unclogged[hour] += 1;
-    });
 
     const datasets = [
       {
         label: `Clogged`,
-        data: clogged,
+        data: cloggingEvents.Clogged,
         borderColor: "rgba(255, 60, 60, 0.86)",
         backgroundColor: "rgba(255, 222, 222, 0.71)",
         borderWidth: 1,
@@ -181,7 +165,7 @@ export default function DashboardComponents() {
       },
       {
         label: `Unclogged`,
-        data: unclogged,
+        data: cloggingEvents.Unclogged,
         borderColor: "rgba(50, 168, 255, 0.71)",
         backgroundColor: "rgba(186, 225, 255, 0.71)",
         borderWidth: 1,
