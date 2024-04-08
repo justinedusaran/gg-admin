@@ -225,7 +225,7 @@ export default function DataHistory() {
               ? "Clogging Frequency per Minute"
               : "Clogging Frequency per Hour",
           font: {
-            size: 14,
+            size: 13,
           },
         },
       },
@@ -304,7 +304,6 @@ export default function DataHistory() {
           <canvas id="clogging-chart-minute" />
         </Paper>
         <Paper style={{ height: 260, marginTop: 15 }}>
-
           <canvas id="clogging-chart-hour" />
         </Paper>
       </Grid>

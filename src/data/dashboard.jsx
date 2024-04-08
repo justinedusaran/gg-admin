@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom"; // Import Link
+import { Link } from "react-router-dom";
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import initializeFirebase from "./firebase/firebase";
@@ -12,6 +12,10 @@ import clearedIcon from "../icons/cleared-icon.svg";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../theme";
 import { Button } from "@mui/material";
+import NotificationImportantIcon from "@mui/icons-material/NotificationImportant";
+import ErrorIcon from "@mui/icons-material/Error";
+import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
+import Chart from "chart.js/auto";
 
 const clogIcon = L.icon({
   iconUrl: cloggedIcon,
@@ -29,6 +33,7 @@ export default function DashboardComponents() {
   const [rows, setRows] = useState([]);
   const [center, setCenter] = useState([14.577694, 120.9856868]);
   const mapRef = useRef();
+  const chartRefHour = useRef(null);
 
   const [maintenanceCounts, setMaintenanceCounts] = useState({
     pending: 0,
@@ -37,12 +42,11 @@ export default function DashboardComponents() {
   });
 
   useEffect(() => {
-    const database = initializeFirebase();
-    const paramPath = "/GutterLocations";
-    const paramRef = ref(database, paramPath);
-
     const fetchDataFromFirebase = async () => {
       try {
+        const database = initializeFirebase();
+        const paramPath = "/GutterLocations";
+        const paramRef = ref(database, paramPath);
         const snapshot = await get(paramRef);
         const data = snapshot.val();
         if (data) {
@@ -117,6 +121,22 @@ export default function DashboardComponents() {
           });
 
           setMaintenanceCounts(counts);
+
+          const cloggingEvents = {
+            true: [],
+            false: [],
+          };
+
+          gutterLocations.forEach(({ clogHistory }) => {
+            clogHistory.forEach(({ timestamp, status }) => {
+              cloggingEvents[status ? "true" : "false"].push({
+                timestamp,
+                status,
+              });
+            });
+          });
+
+          drawChart(cloggingEvents, "hour");
         } else {
           console.log("No data available under GutterLocations.");
         }
@@ -126,18 +146,100 @@ export default function DashboardComponents() {
     };
 
     fetchDataFromFirebase();
-
-    return () => {};
   }, []);
 
+  const drawChart = (cloggingEvents, type) => {
+    if (!cloggingEvents || !cloggingEvents.true || !cloggingEvents.false) {
+      console.error("cloggingEvents or its properties are undefined");
+      return;
+    }
+
+    const ctx = document.getElementById(`clogging-chart-${type}`);
+
+    const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+    const clogged = Array.from({ length: 24 }, (_, i) => 0);
+    const unclogged = Array.from({ length: 24 }, (_, i) => 0);
+
+    cloggingEvents.true.forEach((event) => {
+      const hour = new Date(parseInt(event.timestamp)).getHours();
+      clogged[hour] += 1;
+    });
+
+    cloggingEvents.false.forEach((event) => {
+      const hour = new Date(parseInt(event.timestamp)).getHours();
+      unclogged[hour] += 1;
+    });
+
+    const datasets = [
+      {
+        label: `Clogged`,
+        data: clogged,
+        borderColor: "rgba(255, 60, 60, 0.86)",
+        backgroundColor: "rgba(255, 222, 222, 0.71)",
+        borderWidth: 1,
+        fill: true,
+      },
+      {
+        label: `Unclogged`,
+        data: unclogged,
+        borderColor: "rgba(50, 168, 255, 0.71)",
+        backgroundColor: "rgba(186, 225, 255, 0.71)",
+        borderWidth: 1,
+        fill: true,
+      },
+    ];
+
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            precision: 0,
+            min: 0,
+          },
+        },
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: "Clogging Frequency per Hour",
+          font: {
+            size: 14,
+          },
+        },
+      },
+    };
+
+    if (chartRefHour.current) {
+      chartRefHour.current.destroy();
+    }
+
+    chartRefHour.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: datasets,
+      },
+      options: options,
+    });
+  };
+
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
         <MapContainer
           center={center}
           zoom={16}
           ref={mapRef}
-          style={{ height: "525px", width: "100%" }}
+          style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
             url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
@@ -162,84 +264,120 @@ export default function DashboardComponents() {
         </MapContainer>
       </Grid>
       <Grid item xs={12} md={6}>
-        <Grid container spacing={3}>
-          {Object.keys(maintenanceCounts).length > 0 && (
-            <>
-              <Grid item xs={12} md={6}>
-                <Paper
-                  elevation={3}
-                  style={{ padding: "20px", textAlign: "center" }}
-                >
-                  <h4
-                    style={{
-                      fontWeight: "normal",
-                    }}
-                  >
-                    Pending Maintenance:
-                  </h4>
-                  <h1>{maintenanceCounts.pending}</h1>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Paper
-                  elevation={3}
-                  style={{ padding: "20px", textAlign: "center" }}
-                >
-                  <h4 style={{ fontWeight: "normal" }}>
-                    Currently under maintenance:
-                  </h4>
-                  <h1> {maintenanceCounts.inprogress}</h1>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Paper
-                  elevation={3}
-                  style={{ padding: "20px", textAlign: "center" }}
-                >
-                  <div style={{ textAlign: "left" }}>
-                    <h3
-                      style={{
-                        fontWeight: "normal",
-                        display: "inline-block",
-                        marginRight: "10px",
-                      }}
-                    >
-                      Clogged Gutters:
-                    </h3>
-                    <h1 style={{ display: "inline-block", margin: "0" }}>
-                      {
-                        rows.filter((row) => row.clogStatus === "Clogged")
-                          .length
-                      }
-                    </h1>
-                  </div>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={6} style={{ textAlign: "center" }}>
-                <Link to="/device-config">
-                  <Button
-                    variant="contained"
-                    sx={{
-                      backgroundColor: colors.orangeAccent[400],
-                      color: colors.primary[900],
-                      "&:hover": {
-                        backgroundColor: colors.orangeAccent[300],
-                      },
-                      borderRadius: "5px",
-                      padding: "10px 20px",
-                      width: "100%",
-                      height: "100%",
-                      fontSize: "18px",
-                    }}
-                    fullWidth
-                  >
-                    ADD NEW DEVICE
-                  </Button>
-                </Link>
-              </Grid>
-            </>
-          )}
-        </Grid>
+        <Paper style={{ height: "320px", width: "100%" }}>
+          <canvas id="clogging-chart-hour" />
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <Paper elevation={2}>
+          <div
+            style={{ display: "flex", alignItems: "center", padding: "30px" }}
+          >
+            <ErrorIcon
+              style={{ fontSize: 80, color: "orange", marginRight: "20px" }}
+            />
+            <div style={{ textAlign: "center" }}>
+              <h3
+                style={{
+                  fontWeight: "normal",
+                  margin: "0",
+                  marginLeft: "10px",
+                }}
+              >
+                Pending Maintenance
+              </h3>
+              <h3 style={{ margin: "0", fontSize: "50px", marginLeft: "10px" }}>
+                {maintenanceCounts.pending}
+              </h3>
+            </div>
+          </div>
+        </Paper>
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <Paper elevation={2}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "30px",
+            }}
+          >
+            <PublishedWithChangesIcon
+              style={{
+                fontSize: 80,
+                color: "green",
+                marginRight: "30px",
+              }}
+            />
+            <div style={{ textAlign: "center" }}>
+              <h3
+                style={{
+                  fontWeight: "normal",
+                  margin: "0",
+                }}
+              >
+                Under maintenance
+              </h3>
+              <h1 style={{ margin: "0", fontSize: "50px" }}>
+                {maintenanceCounts.inprogress}
+              </h1>
+            </div>
+          </div>
+        </Paper>
+      </Grid>
+      <Grid item xs={12} md={3}>
+        <Paper elevation={2}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "30px",
+            }}
+          >
+            <NotificationImportantIcon
+              style={{
+                fontSize: 80,
+                color: "red",
+                marginRight: "30px",
+              }}
+            />
+            <div style={{ textAlign: "center" }}>
+              <h3
+                style={{
+                  fontWeight: "normal",
+                  margin: "0",
+                }}
+              >
+                Clogged Gutters
+              </h3>
+              <h1 style={{ margin: "0", fontSize: "50px" }}>
+                {rows.filter((row) => row.clogStatus === "Clogged").length}
+              </h1>
+            </div>
+          </div>
+        </Paper>
+      </Grid>
+      <Grid item xs={12} md={3} style={{ textAlign: "center" }}>
+        <Link to="/device-config">
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: colors.orangeAccent[400],
+              color: colors.primary[900],
+              "&:hover": {
+                backgroundColor: colors.orangeAccent[300],
+              },
+              borderRadius: "5px",
+              width: "100%",
+              height: "100%",
+              fontSize: "20px",
+            }}
+            fullWidth
+          >
+            ADD NEW DEVICE
+          </Button>
+        </Link>
       </Grid>
     </Grid>
   );
