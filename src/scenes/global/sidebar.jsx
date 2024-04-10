@@ -29,7 +29,7 @@ const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
   );
 };
 
-const Sidebar = () => {
+const Sidebar = ({ onLogout }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -189,6 +189,7 @@ const Sidebar = () => {
               {!isCollapsed && <Typography>Logout</Typography>}
               <Link
                 to="/"
+                onClick={onLogout}
                 style={{ textDecoration: "none", color: "inherit" }}
               />
             </MenuItem>

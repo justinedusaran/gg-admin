@@ -25,7 +25,7 @@ const LoginPage = ({ onLogin }) => {
       <img
         src="./assets/ggutterguard-icon.png"
         alt="logo"
-        style={{ width: "100px", marginTop: "80px" }}
+        style={{ width: "100px", marginTop: "130px" }}
       />
       <Box
         sx={{
