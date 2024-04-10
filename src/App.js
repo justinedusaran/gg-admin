@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -11,9 +12,11 @@ import LoginPage from "./scenes/login";
 
 function App() {
   const [theme, colorMode] = useMode();
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const handleLogin = () => {
-    return <Navigate to="/dashboard" />;
+    // Simulate successful login
+    setLoggedIn(true);
   };
 
   return (
@@ -25,11 +28,20 @@ function App() {
           <main className="content">
             <Topbar />
             <Routes>
-              <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/device-location" element={<Location />} />
-              <Route path="/device-config" element={<DeviceConfig />} />
-              <Route path="/historical" element={<HistoricalData />} />
+              <Route
+                path="/"
+                element={
+                  loggedIn ? (
+                    <Navigate to="/dashboard" />
+                  ) : (
+                    <LoginPage onLogin={handleLogin} />
+                  )
+                }
+              />
+              <Route path="/dashboard" element={loggedIn ? <Dashboard /> : <Navigate to="/" />} />
+              <Route path="/device-location" element={loggedIn ? <Location /> : <Navigate to="/" />} />
+              <Route path="/device-config" element={loggedIn ? <DeviceConfig /> : <Navigate to="/" />} />
+              <Route path="/historical" element={loggedIn ? <HistoricalData /> : <Navigate to="/" />} />
             </Routes>
           </main>
         </div>
