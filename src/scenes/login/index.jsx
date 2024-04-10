@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { ref, get } from "firebase/database";
 import initializeFirebase from "../../data/firebase/firebase";
 import { Navigate } from "react-router-dom";
@@ -9,6 +14,7 @@ const LoginPage = ({ onLogin }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const lastVisitedRoute = localStorage.getItem("lastVisitedRoute");
 
   const handleLogin = async () => {
     try {
@@ -21,7 +27,7 @@ const LoginPage = ({ onLogin }) => {
         const userData = snapshot.val();
         if (userData.username === username && userData.password === password) {
           setIsLoggedIn(true);
-          onLogin();
+          onLogin(); // Removed rememberMe argument since it's not needed anymore
         } else {
           setError("Incorrect username or password");
         }
@@ -40,7 +46,7 @@ const LoginPage = ({ onLogin }) => {
   };
 
   if (isLoggedIn) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={lastVisitedRoute || "/dashboard"} replace />;
   }
 
   return (

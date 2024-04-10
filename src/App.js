@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import {
@@ -21,13 +21,44 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const inactivityTimer = useRef(null);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("isLoggedIn");
+    setLoggedIn(false);
+    navigate("/");
+    clearTimeout(inactivityTimer.current);
+  }, [navigate, inactivityTimer]);
+
+  const startInactivityTimer = useCallback(() => {
+    clearTimeout(inactivityTimer.current);
+    inactivityTimer.current = setTimeout(() => {
+      handleLogout();
+    }, 30 * 60 * 1000);
+  }, [handleLogout]);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isLoggedIn");
     if (isAuthenticated === "true") {
       setLoggedIn(true);
     }
-  }, []);
+
+    const handleWindowClose = (event) => {
+      if (
+        !event.currentTarget.performance ||
+        event.currentTarget.performance.navigation.type !== 1
+      ) {
+        handleLogout();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleWindowClose);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleWindowClose);
+      clearTimeout(inactivityTimer.current);
+    };
+  }, [loggedIn, handleLogout, startInactivityTimer]);
 
   useEffect(() => {
     if (loggedIn && location.pathname !== "/") {
@@ -47,19 +78,26 @@ function App() {
   }, [loggedIn, location.pathname, navigate]);
 
   const handleLogin = () => {
-    // Simulate successful login
     localStorage.setItem("isLoggedIn", "true");
     setLoggedIn(true);
     navigate("/dashboard");
+    startInactivityTimer();
   };
 
-  const handleLogout = () => {
-    // Reset authentication state
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("lastVisitedRoute");
-    setLoggedIn(false);
-    navigate("/");
-  };
+  const handleUserActivity = useCallback(() => {
+    clearTimeout(inactivityTimer.current);
+    startInactivityTimer();
+  }, [startInactivityTimer]);
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleUserActivity);
+    document.addEventListener("keydown", handleUserActivity);
+
+    return () => {
+      document.removeEventListener("mousedown", handleUserActivity);
+      document.removeEventListener("keydown", handleUserActivity);
+    };
+  }, [handleUserActivity]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
