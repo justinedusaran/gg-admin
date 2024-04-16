@@ -67,7 +67,7 @@ export default function DashboardComponents() {
                 const clogEvents = Object.entries(isClogged).map(
                   ([timestamp, status]) => ({
                     timestamp,
-                    status: status ? "Clogged" : "Unclogged",
+                    status: status ? "Clogged" : "Cleared",
                   })
                 );
 
@@ -118,7 +118,7 @@ export default function DashboardComponents() {
 
           const cloggingEvents = {
             Clogged: Array.from({ length: 24 }, () => 0),
-            Unclogged: Array.from({ length: 24 }, () => 0),
+            Cleared: Array.from({ length: 24 }, () => 0),
           };
 
           gutterLocations.forEach(({ clogHistory }) => {
@@ -144,7 +144,7 @@ export default function DashboardComponents() {
     if (
       !cloggingEvents ||
       !cloggingEvents.Clogged ||
-      !cloggingEvents.Unclogged
+      !cloggingEvents.Cleared
     ) {
       console.error("cloggingEvents or its properties are undefined");
       return;
@@ -165,7 +165,7 @@ export default function DashboardComponents() {
       },
       {
         label: `Unclogged`,
-        data: cloggingEvents.Unclogged,
+        data: cloggingEvents.Cleared,
         borderColor: "rgba(50, 168, 255, 0.71)",
         backgroundColor: "rgba(186, 225, 255, 0.71)",
         borderWidth: 1,

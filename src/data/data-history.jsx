@@ -22,7 +22,10 @@ export default function DataHistory() {
   const [rowsPerPage, setRowsPerPage] = useState(8);
   const chartRefMinute = useRef(null);
   const chartRefHour = useRef(null);
+  const chartRefDay = useRef(null);
+  const chartRefWeek = useRef(null);
   const [cloggingData, setCloggingData] = useState([]);
+  const [chartType, setChartType] = useState("day"); // Default to per day
 
   function formatTimestamp(timestamp) {
     const month = parseInt(timestamp.substring(0, 2)) - 1;
@@ -86,6 +89,11 @@ export default function DataHistory() {
             }
           });
 
+          // Sort allTimestamps by timestamp in descending order
+          allTimestamps.sort((a, b) => {
+            return parseInt(b.timestamp) - parseInt(a.timestamp);
+          });
+
           setCloggingData(allTimestamps);
 
           const gutterLocations = Object.entries(data).map(
@@ -122,8 +130,7 @@ export default function DataHistory() {
 
           setRows(gutterLocations);
 
-          drawChart(cloggingEvents, "minute");
-          drawChart(cloggingEvents, "hour");
+          drawChart(cloggingEvents, chartType);
         } else {
           console.log("No data available under GutterLocations.");
         }
@@ -133,7 +140,7 @@ export default function DataHistory() {
     };
 
     fetchDataFromFirebase();
-  }, []);
+  }, [chartType]);
 
   const drawChart = (cloggingEvents, type) => {
     if (!cloggingEvents || !cloggingEvents.true || !cloggingEvents.false) {
@@ -147,11 +154,33 @@ export default function DataHistory() {
     let clogged;
     let unclogged;
 
-    if (type === "hour") {
-      labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-      clogged = Array.from({ length: 24 }, (_, i) => 0);
-      unclogged = Array.from({ length: 24 }, (_, i) => 0);
+    if (type === "week") {
+      // Define labels for each day of the week
+      labels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+      // Initialize arrays to store clogged and unclogged events for each day of the week
+      clogged = Array.from({ length: 7 }, () => 0);
+      unclogged = Array.from({ length: 7 }, () => 0);
+
+      // Iterate through clogging events and update corresponding day of the week counts
+      cloggingEvents.true.forEach((event) => {
+        const dayOfWeek = new Date(parseInt(event.timestamp)).getDay();
+        clogged[dayOfWeek] += 1;
+      });
+
+      cloggingEvents.false.forEach((event) => {
+        const dayOfWeek = new Date(parseInt(event.timestamp)).getDay();
+        unclogged[dayOfWeek] += 1;
+      });
+    } else if (type === "day") {
+      // Define labels for each hour of the day
+      labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+      // Initialize arrays to store clogged and unclogged events for each hour of the day
+      clogged = Array.from({ length: 24 }, () => 0);
+      unclogged = Array.from({ length: 24 }, () => 0);
+
+      // Iterate through clogging events and update corresponding hour counts
       cloggingEvents.true.forEach((event) => {
         const hour = new Date(parseInt(event.timestamp)).getHours();
         clogged[hour] += 1;
@@ -160,25 +189,6 @@ export default function DataHistory() {
       cloggingEvents.false.forEach((event) => {
         const hour = new Date(parseInt(event.timestamp)).getHours();
         unclogged[hour] += 1;
-      });
-    } else {
-      labels = Array.from({ length: 20 }, (_, i) => {
-        const minute = i * 3;
-        const hour = Math.floor(minute / 60);
-        const remainder = minute % 60;
-        return `${hour}:${remainder < 10 ? "0" : ""}${remainder}`;
-      });
-      clogged = Array.from({ length: 20 }, (_, i) => 0);
-      unclogged = Array.from({ length: 20 }, (_, i) => 0);
-
-      cloggingEvents.true.forEach((event) => {
-        const minute = new Date(parseInt(event.timestamp)).getMinutes();
-        clogged[Math.floor(minute / 3)] += 1;
-      });
-
-      cloggingEvents.false.forEach((event) => {
-        const minute = new Date(parseInt(event.timestamp)).getMinutes();
-        unclogged[Math.floor(minute / 3)] += 1;
       });
     }
 
@@ -220,10 +230,7 @@ export default function DataHistory() {
       plugins: {
         title: {
           display: true,
-          text:
-            type === "minute"
-              ? "Clogging Frequency per Minute"
-              : "Clogging Frequency per Hour",
+          text: type === "day" ? "Clogging Frequency per Day" : "Clogging Frequency per Week",
           font: {
             size: 13,
           },
@@ -231,7 +238,7 @@ export default function DataHistory() {
       },
     };
 
-    const chartRef = type === "minute" ? chartRefMinute : chartRefHour;
+    const chartRef = type === "day" ? chartRefDay : chartRefWeek;
 
     if (chartRef.current) {
       chartRef.current.destroy();
@@ -254,6 +261,10 @@ export default function DataHistory() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
+  };
+
+  const handleChartTypeChange = (type) => {
+    setChartType(type);
   };
 
   return (
@@ -281,6 +292,25 @@ export default function DataHistory() {
                     }))
                   )
                   .flat()
+                  .sort((a, b) => {
+                    const timestampTo24HourFormat = (timestamp) => {
+                      const hour = parseInt(timestamp.substring(9, 11));
+                      const isPM = timestamp.substring(20) === "PM";
+                      return isPM ? hour + 12 : hour;
+                    };
+
+                    const dateA = parseInt(a.timestamp.substring(0, 8));
+                    const timeA = timestampTo24HourFormat(a.timestamp);
+
+                    const dateB = parseInt(b.timestamp.substring(0, 8));
+                    const timeB = timestampTo24HourFormat(b.timestamp);
+
+                    if (dateA !== dateB) {
+                      return dateB - dateA;
+                    } else {
+                      return timeB - timeA;
+                    }
+                  })
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((entry, index) => (
                     <TableRow key={index}>
@@ -308,11 +338,15 @@ export default function DataHistory() {
       </Grid>
       <Grid item xs={6}>
         <Paper style={{ height: 260 }}>
-          <canvas id="clogging-chart-minute" />
+          <canvas id="clogging-chart-day" />
         </Paper>
         <Paper style={{ height: 260, marginTop: 15 }}>
-          <canvas id="clogging-chart-hour" />
+          <canvas id="clogging-chart-week" />
         </Paper>
+        <div style={{ marginTop: 15 }}>
+          <button onClick={() => handleChartTypeChange("day")}>Per Day</button>
+          <button onClick={() => handleChartTypeChange("week")}>Per Week</button>
+        </div>
       </Grid>
     </Grid>
   );
