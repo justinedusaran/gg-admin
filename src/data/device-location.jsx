@@ -19,7 +19,7 @@ const clearIcon = L.icon({
 
 export default function DeviceLocation() {
   const [rows, setRows] = useState([]);
-  const [center, setCenter] = useState([14.57723485, 120.9856868]);
+  const [center, setCenter] = useState([14.5798232, 120.98568789]);
   const mapRef = useRef();
 
   useEffect(() => {
