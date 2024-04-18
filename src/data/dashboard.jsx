@@ -33,7 +33,7 @@ export default function DashboardComponents() {
   const [rows, setRows] = useState([]);
   const [center, setCenter] = useState([14.577694, 120.9856868]);
   const mapRef = useRef();
-  const chartRefHour = useRef(null);
+  const chartRefWeek = useRef(null);
   const [maintenanceCounts, setMaintenanceCounts] = useState({
     pending: 0,
     nomaintenancereq: 0,
@@ -116,19 +116,38 @@ export default function DashboardComponents() {
 
           setMaintenanceCounts(counts);
 
+          const currentDate = new Date();
+          const currentWeekStart = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate() - currentDate.getDay()
+          );
+
           const cloggingEvents = {
-            Clogged: Array.from({ length: 24 }, () => 0),
-            Cleared: Array.from({ length: 24 }, () => 0),
+            Clogged: Array.from({ length: 7 }, () => 0),
+            Cleared: Array.from({ length: 7 }, () => 0),
           };
 
-          gutterLocations.forEach(({ clogHistory }) => {
-            clogHistory.forEach(({ timestamp, status }) => {
-              const hour = new Date(parseInt(timestamp)).getHours();
-              cloggingEvents[status][hour]++; // Increment the count for the corresponding hour
-            });
+          Object.values(data).forEach((deviceData) => {
+            const { isClogged } = deviceData;
+            if (isClogged) {
+              Object.entries(isClogged).forEach(([timestamp, status]) => {
+                const eventDate = new Date(
+                  parseInt(timestamp.substring(4, 8)),
+                  parseInt(timestamp.substring(0, 2)) - 1,
+                  parseInt(timestamp.substring(2, 4))
+                );
+
+                // Check if the event date is within the current week
+                if (eventDate >= currentWeekStart && eventDate <= currentDate) {
+                  const dayOfWeek = eventDate.getDay();
+                  cloggingEvents[status ? "Clogged" : "Cleared"][dayOfWeek]++;
+                }
+              });
+            }
           });
 
-          drawChart(cloggingEvents, "hour");
+          drawChart(cloggingEvents, "week");
         } else {
           console.log("No data available under GutterLocations.");
         }
@@ -141,18 +160,14 @@ export default function DashboardComponents() {
   }, []);
 
   const drawChart = (cloggingEvents, type) => {
-    if (
-      !cloggingEvents ||
-      !cloggingEvents.Clogged ||
-      !cloggingEvents.Cleared
-    ) {
+    if (!cloggingEvents || !cloggingEvents.Clogged || !cloggingEvents.Cleared) {
       console.error("cloggingEvents or its properties are undefined");
       return;
     }
 
     const ctx = document.getElementById(`clogging-chart-${type}`);
 
-    const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     const datasets = [
       {
@@ -194,7 +209,7 @@ export default function DashboardComponents() {
       plugins: {
         title: {
           display: true,
-          text: "Clogging Frequency per Hour",
+          text: "Clogging Frequency per Week",
           font: {
             size: 14,
           },
@@ -202,11 +217,11 @@ export default function DashboardComponents() {
       },
     };
 
-    if (chartRefHour.current) {
-      chartRefHour.current.destroy();
+    if (chartRefWeek.current) {
+      chartRefWeek.current.destroy();
     }
 
-    chartRefHour.current = new Chart(ctx, {
+    chartRefWeek.current = new Chart(ctx, {
       type: "line",
       data: {
         labels: labels,
@@ -258,7 +273,7 @@ export default function DashboardComponents() {
       </Grid>
       <Grid item xs={12} md={6}>
         <Paper style={{ height: "320px", width: "100%" }}>
-          <canvas id="clogging-chart-hour" />
+          <canvas id="clogging-chart-week" />
         </Paper>
       </Grid>
 
