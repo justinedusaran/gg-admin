@@ -6,6 +6,16 @@ import cloggedIcon from "../icons/clogged-icon.svg";
 import clearedIcon from "../icons/cleared-icon.svg";
 import initializeFirebase from "./firebase/firebase";
 import { ref, get } from "firebase/database";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 
 const clogIcon = L.icon({
   iconUrl: cloggedIcon,
@@ -98,35 +108,85 @@ export default function DeviceLocation() {
     return () => {};
   }, []);
 
+  const cloggedRows = rows.filter((row) => row.clogStatus === "Clogged");
+
+  const columns = [
+    { id: "name", label: "Name", minWidth: 170 },
+    { id: "maintenanceStatus", label: "Maintenance Status", minWidth: 170 },
+  ];
+
   return (
-    <MapContainer
-      center={center}
-      zoom={16}
-      ref={mapRef}
-      style={{ height: "525px", width: "100%" }}
-      maxZoom={18}
-      minZoom={14}
-    >
-      <TileLayer
-        url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
-        attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
-      />
-      {rows.map((row, index) => (
-        <Marker
-          key={index}
-          position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
-          icon={row.clogStatus === "Clogged" ? clogIcon : clearIcon}
+    <Grid container spacing={3}>
+      <Grid item xs={8}>
+        <MapContainer
+          center={center}
+          zoom={16}
+          ref={mapRef}
+          style={{ height: "525px", width: "100%" }}
+          maxZoom={18}
+          minZoom={14}
         >
-          <Popup>
-            <div>
-              <h2>{row.name}</h2>
-              <p>Address: {row.address}</p>
-              <p>Clog Status: {row.clogStatus}</p>
-              <p>Maintenance Status: {row.maintenanceStatus}</p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+          <TileLayer
+            url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
+            attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> contributors'
+          />
+          {rows.map((row, index) => (
+            <Marker
+              key={index}
+              position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
+              icon={row.clogStatus === "Clogged" ? clogIcon : clearIcon}
+            >
+              <Popup>
+                <div>
+                  <h2>{row.name}</h2>
+                  <p>Address: {row.address}</p>
+                  <p>Clog Status: {row.clogStatus}</p>
+                  <p>Maintenance Status: {row.maintenanceStatus}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </Grid>
+      <Grid item xs={4}>
+        <Paper elevation={3} style={{ maxHeight: "525px", overflow: "auto" }}>
+          <Typography variant="h6" align="center" marginTop={3}>
+            Clogged Gutters
+          </Typography>
+          <TableContainer>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align="center"
+                      style={{ minWidth: column.minWidth }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {cloggedRows.map((row, index) => (
+                  <TableRow key={index} hover role="checkbox" tabIndex={-1}>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align="center"
+                        style={{ minWidth: column.minWidth }}
+                      >
+                        {row[column.id]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Grid>
+    </Grid>
   );
 }
