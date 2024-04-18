@@ -245,6 +245,8 @@ export default function DashboardComponents() {
           zoom={16}
           ref={mapRef}
           style={{ height: "100%", width: "100%" }}
+          maxZoom={18}
+          minZoom={13}
         >
           <TileLayer
             url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"

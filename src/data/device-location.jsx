@@ -104,6 +104,8 @@ export default function DeviceLocation() {
       zoom={16}
       ref={mapRef}
       style={{ height: "525px", width: "100%" }}
+      maxZoom={18}
+      minZoom={14}
     >
       <TileLayer
         url="https://api.maptiler.com/maps/dataviz/256/{z}/{x}/{y}.png?key=qKtzXYmOKKYYAxMzX6D4"
