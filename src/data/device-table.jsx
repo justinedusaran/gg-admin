@@ -36,10 +36,22 @@ const columns = [
     minWidth: 100,
     align: "center",
   },
+  {
+    id: "latitude",
+    label: "Latitude",
+    minWidth: 100,
+    align: "center",
+  },
+  {
+    id: "longitude",
+    label: "Longitude",
+    minWidth: 100,
+    align: "center",
+  },
 ];
 
-function createData(id, name, address) {
-  return { id, name, address };
+function createData(id, name, address, latitude, longitude) {
+  return { id, name, address, latitude, longitude };
 }
 
 export default function DeviceManagement() {
@@ -50,6 +62,8 @@ export default function DeviceManagement() {
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [addressInput, setAddressInput] = useState("");
+  const [latitudeInput, setLatitudeInput] = useState("");
+  const [longitudeInput, setLongitudeInput] = useState("");
   const [rows, setRows] = useState([]);
   const [idOptions, setIdOptions] = useState([]);
   const [isButtonClicked, setIsButtonClicked] = useState(false);
@@ -65,7 +79,8 @@ export default function DeviceManagement() {
         const data = snapshot.val();
         if (data) {
           const gutterLocations = Object.entries(data).map(
-            ([id, { name, address }]) => createData(id, name, address)
+            ([id, { name, address, latitude, longitude }]) =>
+              createData(id, name, address, latitude, longitude)
           );
           setRows(gutterLocations);
           setIdOptions(gutterLocations.map((location) => location.id));
@@ -93,12 +108,20 @@ export default function DeviceManagement() {
 
   const handleAddDevice = async () => {
     setIsButtonClicked(true);
-    if (selectedDeviceId && nameInput && addressInput) {
+    if (
+      selectedDeviceId &&
+      nameInput &&
+      addressInput &&
+      latitudeInput &&
+      longitudeInput
+    ) {
       const rowIndex = rows.findIndex((row) => row.id === selectedDeviceId);
       if (rowIndex !== -1) {
         const updatedRow = rows[rowIndex];
         updatedRow.name = nameInput;
         updatedRow.address = addressInput;
+        updatedRow.latitude = latitudeInput;
+        updatedRow.longitude = longitudeInput;
         try {
           const snapshot = await get(
             ref(database, `/GutterLocations/${selectedDeviceId}`)
@@ -109,6 +132,8 @@ export default function DeviceManagement() {
               ...existingData,
               name: nameInput,
               address: addressInput,
+              latitude: latitudeInput,
+              longitude: longitudeInput,
             };
             await update(
               ref(database, `/GutterLocations/${selectedDeviceId}`),
@@ -119,6 +144,8 @@ export default function DeviceManagement() {
             setRows(newRows);
             setNameInput("");
             setAddressInput("");
+            setLatitudeInput("");
+            setLongitudeInput("");
             setSelectedDeviceId("");
             setIsButtonClicked(false);
             console.log("Device updated successfully!");
@@ -256,6 +283,42 @@ export default function DeviceManagement() {
             error={isButtonClicked && !addressInput}
             helperText={
               isButtonClicked && !addressInput && "Address is required"
+            }
+          />
+          <TextField
+            label="Latitude"
+            variant="filled"
+            fullWidth
+            InputLabelProps={{
+              style: {
+                color: colors.primary[200],
+              },
+            }}
+            sx={{ marginBottom: 2 }}
+            value={latitudeInput}
+            onChange={(e) => setLatitudeInput(e.target.value)}
+            required
+            error={isButtonClicked && !latitudeInput}
+            helperText={
+              isButtonClicked && !latitudeInput && "Latitude is required"
+            }
+          />
+          <TextField
+            label="Longitude"
+            variant="filled"
+            fullWidth
+            InputLabelProps={{
+              style: {
+                color: colors.primary[200],
+              },
+            }}
+            sx={{ marginBottom: 2 }}
+            value={longitudeInput}
+            onChange={(e) => setLongitudeInput(e.target.value)}
+            required
+            error={isButtonClicked && !longitudeInput}
+            helperText={
+              isButtonClicked && !longitudeInput && "Longitude is required"
             }
           />
           <Button
