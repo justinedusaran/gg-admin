@@ -120,8 +120,8 @@ export default function DeviceManagement() {
         const updatedRow = rows[rowIndex];
         updatedRow.name = nameInput;
         updatedRow.address = addressInput;
-        updatedRow.latitude = latitudeInput;
-        updatedRow.longitude = longitudeInput;
+        updatedRow.latitude = parseFloat(latitudeInput);
+        updatedRow.longitude = parseFloat(longitudeInput);
         try {
           const snapshot = await get(
             ref(database, `/GutterLocations/${selectedDeviceId}`)
@@ -132,8 +132,8 @@ export default function DeviceManagement() {
               ...existingData,
               name: nameInput,
               address: addressInput,
-              latitude: latitudeInput,
-              longitude: longitudeInput,
+              latitude: parseFloat(latitudeInput),
+              longitude: parseFloat(longitudeInput),
             };
             await update(
               ref(database, `/GutterLocations/${selectedDeviceId}`),
