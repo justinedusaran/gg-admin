@@ -7,8 +7,6 @@ import { ref, get } from "firebase/database";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import cloggedIcon from "../icons/clogged-icon.svg";
-import clearedIcon from "../icons/cleared-icon.svg";
 import { useTheme } from "@emotion/react";
 import { tokens } from "../theme";
 import { Button } from "@mui/material";
@@ -16,14 +14,22 @@ import NotificationImportantIcon from "@mui/icons-material/NotificationImportant
 import ErrorIcon from "@mui/icons-material/Error";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import Chart from "chart.js/auto";
+import progressIcon from "../icons/progress-icon.svg";
+import pendingIcon from "../icons/pending-icon.svg";
+import norequestIcon from "../icons/noreq-icon.svg";
 
-const clogIcon = L.icon({
-  iconUrl: cloggedIcon,
+const progIcon = L.icon({
+  iconUrl: progressIcon,
   iconSize: [30, 30],
 });
 
-const clearIcon = L.icon({
-  iconUrl: clearedIcon,
+const pendIcon = L.icon({
+  iconUrl: pendingIcon,
+  iconSize: [30, 30],
+});
+
+const noreqIcon = L.icon({
+  iconUrl: norequestIcon,
   iconSize: [30, 30],
 });
 
@@ -237,6 +243,12 @@ export default function DashboardComponents() {
     inprogress: "In progress",
   };
 
+  const maintenanceStatusIcons = {
+    pending: pendIcon,
+    nomaintenancereq: noreqIcon,
+    inprogress: progIcon,
+  };
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
@@ -256,7 +268,7 @@ export default function DashboardComponents() {
             <Marker
               key={index}
               position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
-              icon={row.clogStatus === "Clogged" ? clogIcon : clearIcon}
+              icon={maintenanceStatusIcons[row.maintenanceStatus.toLowerCase()]}
             >
               <Popup>
                 <div>

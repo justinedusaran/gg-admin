@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import cloggedIcon from "../icons/clogged-icon.svg";
-import clearedIcon from "../icons/cleared-icon.svg";
+import progressIcon from "../icons/progress-icon.svg";
+import pendingIcon from "../icons/pending-icon.svg";
+import norequestIcon from "../icons/noreq-icon.svg";
 import initializeFirebase from "./firebase/firebase";
 import { ref, get } from "firebase/database";
 import Paper from "@mui/material/Paper";
@@ -12,18 +13,22 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 
-const clogIcon = L.icon({
-  iconUrl: cloggedIcon,
+const progIcon = L.icon({
+  iconUrl: progressIcon,
   iconSize: [30, 30],
 });
 
-const clearIcon = L.icon({
-  iconUrl: clearedIcon,
+const pendIcon = L.icon({
+  iconUrl: pendingIcon,
+  iconSize: [30, 30],
+});
+
+const noreqIcon = L.icon({
+  iconUrl: norequestIcon,
   iconSize: [30, 30],
 });
 
@@ -110,6 +115,13 @@ export default function DeviceLocation() {
 
   const cloggedRows = rows.filter((row) => row.clogStatus === "Clogged");
 
+  // Define icons for different maintenance statuses
+  const maintenanceIcons = {
+    "in progress": progIcon,
+    pending: pendIcon,
+    "no maintenance required": noreqIcon,
+  };
+
   const columns = [
     { id: "name", label: "Name", minWidth: 170 },
     { id: "maintenanceStatus", label: "Maintenance Status", minWidth: 170 },
@@ -134,7 +146,7 @@ export default function DeviceLocation() {
             <Marker
               key={index}
               position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
-              icon={row.clogStatus === "Clogged" ? clogIcon : clearIcon}
+              icon={maintenanceIcons[row.maintenanceStatus.toLowerCase()]} // Select icon based on maintenance status
             >
               <Popup>
                 <div>
