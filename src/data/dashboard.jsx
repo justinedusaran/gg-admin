@@ -46,6 +46,12 @@ export default function DashboardComponents() {
     inprogress: 0,
   });
 
+  const currentDate = new Date();
+  const currentDay = currentDate.getDate();
+  const currentMonth = currentDate.getMonth() + 1; // Month is zero-based
+  const currentYear = currentDate.getFullYear();
+  const currentDateString = `${currentMonth}/${currentDay}/${currentYear}`;
+
   useEffect(() => {
     const fetchDataFromFirebase = async () => {
       try {
@@ -116,18 +122,30 @@ export default function DashboardComponents() {
             inprogress: 0,
           };
 
+          // Update counts based on maintenance status and clogged gutters
           gutterLocations.forEach((deviceData) => {
-            counts[deviceData.maintenanceStatus]++;
+            const { maintenanceStatus, clogHistory } = deviceData;
+
+            // Check if the device has clogged gutter for the current day
+            const hasCloggedGutter = clogHistory.some(
+              (event) =>
+                event.status === "Clogged" &&
+                new Date(
+                  parseInt(event.timestamp.substring(4, 8)),
+                  parseInt(event.timestamp.substring(0, 2)) - 1,
+                  parseInt(event.timestamp.substring(2, 4))
+                ).toLocaleDateString() === currentDateString
+            );
+
+            // Increment count based on maintenance status and clogged gutter
+            if (maintenanceStatus === "pending" && hasCloggedGutter) {
+              counts.pending++;
+            } else if (maintenanceStatus === "inprogress" && hasCloggedGutter) {
+              counts.inprogress++;
+            }
           });
 
           setMaintenanceCounts(counts);
-
-          const currentDate = new Date();
-          const currentWeekStart = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            currentDate.getDate() - currentDate.getDay()
-          );
 
           const cloggingEvents = {
             Clogged: Array.from({ length: 7 }, () => 0),
@@ -144,8 +162,12 @@ export default function DashboardComponents() {
                   parseInt(timestamp.substring(2, 4))
                 );
 
-                // Check if the event date is within the current week
-                if (eventDate >= currentWeekStart && eventDate <= currentDate) {
+                // Check if the event date is the current day
+                if (
+                  eventDate.getDate() === currentDay &&
+                  eventDate.getMonth() + 1 === currentMonth &&
+                  eventDate.getFullYear() === currentYear
+                ) {
                   const dayOfWeek = eventDate.getDay();
                   cloggingEvents[status ? "Clogged" : "Cleared"][dayOfWeek]++;
                 }
@@ -274,10 +296,26 @@ export default function DashboardComponents() {
                 <div>
                   <h2>{row.name}</h2>
                   <p>Address: {row.address}</p>
-                  <p>Clog Status: {row.clogStatus}</p>
+                  <p>
+                    Clog Status:{" "}
+                    {row.clogHistory.some(
+                      (event) =>
+                        event.status === "Clogged" &&
+                        new Date(
+                          parseInt(event.timestamp.substring(4, 8)),
+                          parseInt(event.timestamp.substring(0, 2)) - 1,
+                          parseInt(event.timestamp.substring(2, 4))
+                        ).toLocaleDateString() === currentDateString
+                    )
+                      ? row.clogStatus
+                      : "Not Available"}
+                  </p>
                   <p>
                     Maintenance Status:{" "}
-                    {maintenanceStatusMapping[row.maintenanceStatus]}
+                    {row.maintenanceStatus === "pending" ||
+                    row.maintenanceStatus === "inprogress"
+                      ? maintenanceStatusMapping[row.maintenanceStatus]
+                      : "No maintenance required"}
                   </p>
                 </div>
               </Popup>
@@ -374,7 +412,19 @@ export default function DashboardComponents() {
                 Clogged Gutters
               </h3>
               <h1 style={{ margin: "0", fontSize: "50px" }}>
-                {rows.filter((row) => row.clogStatus === "Clogged").length}
+                {
+                  rows.filter((row) =>
+                    row.clogHistory.some(
+                      (event) =>
+                        event.status === "Clogged" &&
+                        new Date(
+                          parseInt(event.timestamp.substring(4, 8)),
+                          parseInt(event.timestamp.substring(0, 2)) - 1,
+                          parseInt(event.timestamp.substring(2, 4))
+                        ).toLocaleDateString() === currentDateString
+                    )
+                  ).length
+                }
               </h1>
             </div>
           </div>
