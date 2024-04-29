@@ -146,7 +146,8 @@ export default function DataHistory() {
     }
 
     const ctx = document.getElementById(`clogging-chart-${type}`);
-
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
     let labels;
     let clogged;
     let unclogged;
@@ -156,40 +157,60 @@ export default function DataHistory() {
       clogged = Array.from({ length: 7 }, () => 0);
       unclogged = Array.from({ length: 7 }, () => 0);
 
-      const currentDate = new Date();
       const currentWeekStart = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth(),
         currentDate.getDate() - currentDate.getDay()
       );
 
-      // Filtering logic for clogged and unclogged events
-      cloggingEvents.true.forEach((event) => {
+      const currentWeekEnd = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        currentDate.getDate() + (6 - currentDate.getDay())
+      );
+
+      const filteredCloggedEvents = cloggingEvents.true.filter((event) => {
         const eventDate = new Date(
           parseInt(event.timestamp.substring(4, 8)),
           parseInt(event.timestamp.substring(0, 2)) - 1,
           parseInt(event.timestamp.substring(2, 4))
         );
-
-        // Check if the event is within the current week
-        if (eventDate >= currentWeekStart && eventDate <= currentDate) {
-          const dayOfWeek = eventDate.getDay();
-          clogged[dayOfWeek] += 1;
-        }
+        return (
+          eventDate >= currentWeekStart &&
+          eventDate <= currentWeekEnd &&
+          eventDate.getFullYear() === currentYear
+        );
       });
 
-      cloggingEvents.false.forEach((event) => {
+      const filteredUncloggedEvents = cloggingEvents.false.filter((event) => {
         const eventDate = new Date(
           parseInt(event.timestamp.substring(4, 8)),
           parseInt(event.timestamp.substring(0, 2)) - 1,
           parseInt(event.timestamp.substring(2, 4))
         );
+        return (
+          eventDate >= currentWeekStart &&
+          eventDate <= currentWeekEnd &&
+          eventDate.getFullYear() === currentYear
+        );
+      });
 
-        // Check if the event is within the current week
-        if (eventDate >= currentWeekStart && eventDate <= currentDate) {
-          const dayOfWeek = eventDate.getDay();
-          unclogged[dayOfWeek] += 1;
-        }
+      filteredCloggedEvents.forEach((event) => {
+        const dayOfWeek = new Date(
+          parseInt(event.timestamp.substring(4, 8)),
+          parseInt(event.timestamp.substring(0, 2)) - 1,
+          parseInt(event.timestamp.substring(2, 4))
+        ).getDay();
+        clogged[dayOfWeek] += 1;
+      });
+
+      filteredUncloggedEvents.forEach((event) => {
+        const dayOfWeek = new Date(
+          parseInt(event.timestamp.substring(4, 8)),
+          parseInt(event.timestamp.substring(0, 2)) - 1,
+          parseInt(event.timestamp.substring(2, 4))
+        ).getDay();
+        unclogged[dayOfWeek] += 1;
       });
     } else if (type === "month") {
       labels = [
@@ -209,12 +230,22 @@ export default function DataHistory() {
       clogged = Array.from({ length: 12 }, (_, i) => 0);
       unclogged = Array.from({ length: 12 }, (_, i) => 0);
 
-      cloggingEvents.true.forEach((event) => {
+      const filteredCloggedEvents = cloggingEvents.true.filter((event) => {
+        const eventYear = parseInt(event.timestamp.substring(4, 8));
+        return eventYear === currentYear;
+      });
+
+      const filteredUncloggedEvents = cloggingEvents.false.filter((event) => {
+        const eventYear = parseInt(event.timestamp.substring(4, 8));
+        return eventYear === currentYear;
+      });
+
+      filteredCloggedEvents.forEach((event) => {
         const month = parseInt(event.timestamp.substring(0, 2)) - 1;
         clogged[month] += 1;
       });
 
-      cloggingEvents.false.forEach((event) => {
+      filteredUncloggedEvents.forEach((event) => {
         const month = parseInt(event.timestamp.substring(0, 2)) - 1;
         unclogged[month] += 1;
       });
