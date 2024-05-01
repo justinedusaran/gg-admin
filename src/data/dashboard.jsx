@@ -22,12 +22,10 @@ const progIcon = L.icon({
   iconUrl: progressIcon,
   iconSize: [30, 30],
 });
-
 const pendIcon = L.icon({
   iconUrl: pendingIcon,
   iconSize: [30, 30],
 });
-
 const noreqIcon = L.icon({
   iconUrl: norequestIcon,
   iconSize: [30, 30],
@@ -46,12 +44,6 @@ export default function DashboardComponents() {
     inprogress: 0,
   });
 
-  const currentDate = new Date();
-  const currentDay = currentDate.getDate();
-  const currentMonth = currentDate.getMonth() + 1; // Month is zero-based
-  const currentYear = currentDate.getFullYear();
-  const currentDateString = `${currentMonth}/${currentDay}/${currentYear}`;
-
   useEffect(() => {
     const fetchDataFromFirebase = async () => {
       try {
@@ -61,53 +53,47 @@ export default function DashboardComponents() {
         const snapshot = await get(paramRef);
         const data = snapshot.val();
         if (data) {
-          const gutterLocations = Object.entries(data).map(
-            ([deviceId, deviceData]) => {
-              const {
-                name,
-                address,
-                latitude,
-                longitude,
-                maintenanceStatus,
-                isClogged,
-              } = deviceData;
-
-              let clogStatus = "Cleared";
-              let clogHistory = [];
-
-              if (isClogged) {
-                const clogEvents = Object.entries(isClogged).map(
-                  ([timestamp, status]) => ({
-                    timestamp,
-                    status: status ? "Clogged" : "Cleared",
-                  })
-                );
-
-                // Sorting the clog events by timestamp
-                clogEvents.sort((a, b) => a.timestamp - b.timestamp);
-
-                // Taking the latest clog status
-                const latestClogEvent = clogEvents[clogEvents.length - 1];
-                if (latestClogEvent) {
-                  clogStatus = latestClogEvent.status;
-                  clogHistory = clogEvents;
-                }
+          const gutterLocations = Object.keys(data).map((deviceId) => {
+            const deviceData = data[deviceId];
+            const {
+              name,
+              address,
+              latitude,
+              longitude,
+              maintenanceStatus,
+              isClogged,
+            } = deviceData;
+            let clogStatus = "Cleared";
+            let clogHistory = [];
+            if (isClogged) {
+              const clogEvents = Object.entries(isClogged).map(
+                ([timestamp, status]) => ({
+                  timestamp,
+                  status: status ? "Clogged" : "Cleared",
+                })
+              );
+              // Sorting the clog events by timestamp
+              clogEvents.sort((a, b) => a.timestamp - b.timestamp);
+              // Taking the latest clog status
+              const latestClogEvent = clogEvents[clogEvents.length - 1];
+              if (latestClogEvent) {
+                clogStatus = latestClogEvent.status;
+                clogHistory = clogEvents;
               }
-
-              return {
-                name,
-                address,
-                latitude,
-                longitude,
-                maintenanceStatus,
-                clogStatus,
-                clogHistory,
-              };
             }
-          );
-
+            return {
+              deviceId,
+              name,
+              address,
+              latitude,
+              longitude,
+              maintenanceStatus,
+              clogStatus,
+              clogHistory,
+              isClogged, // Include isClogged in the object
+            };
+          });
           setRows(gutterLocations);
-
           if (gutterLocations.length > 0) {
             const centerLocation = gutterLocations[0];
             setCenter([
@@ -122,36 +108,25 @@ export default function DashboardComponents() {
             inprogress: 0,
           };
 
-          // Update counts based on maintenance status and clogged gutters
           gutterLocations.forEach((deviceData) => {
-            const { maintenanceStatus, clogHistory } = deviceData;
-
-            // Check if the device has clogged gutter for the current day
-            const hasCloggedGutter = clogHistory.some(
-              (event) =>
-                event.status === "Clogged" &&
-                new Date(
-                  parseInt(event.timestamp.substring(4, 8)),
-                  parseInt(event.timestamp.substring(0, 2)) - 1,
-                  parseInt(event.timestamp.substring(2, 4))
-                ).toLocaleDateString() === currentDateString
-            );
-
-            // Increment count based on maintenance status and clogged gutter
-            if (maintenanceStatus === "pending" && hasCloggedGutter) {
-              counts.pending++;
-            } else if (maintenanceStatus === "inprogress" && hasCloggedGutter) {
-              counts.inprogress++;
+            if (deviceData.clogStatus === "Clogged") {
+              counts[deviceData.maintenanceStatus]++;
             }
           });
 
           setMaintenanceCounts(counts);
 
+          const currentDate = new Date();
+          const currentWeekStart = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate() - currentDate.getDay()
+          );
+
           const cloggingEvents = {
             Clogged: Array.from({ length: 7 }, () => 0),
             Cleared: Array.from({ length: 7 }, () => 0),
           };
-
           Object.values(data).forEach((deviceData) => {
             const { isClogged } = deviceData;
             if (isClogged) {
@@ -162,19 +137,14 @@ export default function DashboardComponents() {
                   parseInt(timestamp.substring(2, 4))
                 );
 
-                // Check if the event date is the current day
-                if (
-                  eventDate.getDate() === currentDay &&
-                  eventDate.getMonth() + 1 === currentMonth &&
-                  eventDate.getFullYear() === currentYear
-                ) {
+                // Check if the event date is within the current week
+                if (eventDate >= currentWeekStart && eventDate <= currentDate) {
                   const dayOfWeek = eventDate.getDay();
                   cloggingEvents[status ? "Clogged" : "Cleared"][dayOfWeek]++;
                 }
               });
             }
           });
-
           drawChart(cloggingEvents, "week");
         } else {
           console.log("No data available under GutterLocations.");
@@ -183,7 +153,6 @@ export default function DashboardComponents() {
         console.error("Error fetching data from Firebase:", error);
       }
     };
-
     fetchDataFromFirebase();
   }, []);
 
@@ -192,11 +161,8 @@ export default function DashboardComponents() {
       console.error("cloggingEvents or its properties are undefined");
       return;
     }
-
     const ctx = document.getElementById(`clogging-chart-${type}`);
-
     const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
     const datasets = [
       {
         label: `Clogged`,
@@ -215,7 +181,6 @@ export default function DashboardComponents() {
         fill: true,
       },
     ];
-
     const options = {
       responsive: true,
       maintainAspectRatio: false,
@@ -244,11 +209,9 @@ export default function DashboardComponents() {
         },
       },
     };
-
     if (chartRefWeek.current) {
       chartRefWeek.current.destroy();
     }
-
     chartRefWeek.current = new Chart(ctx, {
       type: "line",
       data: {
@@ -264,13 +227,11 @@ export default function DashboardComponents() {
     nomaintenancereq: "No maintenance required",
     inprogress: "In progress",
   };
-
   const maintenanceStatusIcons = {
     pending: pendIcon,
     nomaintenancereq: noreqIcon,
     inprogress: progIcon,
   };
-
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
@@ -296,26 +257,10 @@ export default function DashboardComponents() {
                 <div>
                   <h2>{row.name}</h2>
                   <p>Address: {row.address}</p>
-                  <p>
-                    Clog Status:{" "}
-                    {row.clogHistory.some(
-                      (event) =>
-                        event.status === "Clogged" &&
-                        new Date(
-                          parseInt(event.timestamp.substring(4, 8)),
-                          parseInt(event.timestamp.substring(0, 2)) - 1,
-                          parseInt(event.timestamp.substring(2, 4))
-                        ).toLocaleDateString() === currentDateString
-                    )
-                      ? row.clogStatus
-                      : "Not Available"}
-                  </p>
+                  <p>Clog Status: {row.clogStatus}</p>
                   <p>
                     Maintenance Status:{" "}
-                    {row.maintenanceStatus === "pending" ||
-                    row.maintenanceStatus === "inprogress"
-                      ? maintenanceStatusMapping[row.maintenanceStatus]
-                      : "No maintenance required"}
+                    {maintenanceStatusMapping[row.maintenanceStatus]}
                   </p>
                 </div>
               </Popup>
@@ -328,7 +273,6 @@ export default function DashboardComponents() {
           <canvas id="clogging-chart-week" />
         </Paper>
       </Grid>
-
       <Grid item xs={12} md={3}>
         <Paper elevation={2}>
           <div
@@ -412,19 +356,7 @@ export default function DashboardComponents() {
                 Clogged Gutters
               </h3>
               <h1 style={{ margin: "0", fontSize: "50px" }}>
-                {
-                  rows.filter((row) =>
-                    row.clogHistory.some(
-                      (event) =>
-                        event.status === "Clogged" &&
-                        new Date(
-                          parseInt(event.timestamp.substring(4, 8)),
-                          parseInt(event.timestamp.substring(0, 2)) - 1,
-                          parseInt(event.timestamp.substring(2, 4))
-                        ).toLocaleDateString() === currentDateString
-                    )
-                  ).length
-                }
+                {rows.filter((row) => row.clogStatus === "Clogged").length}
               </h1>
             </div>
           </div>
