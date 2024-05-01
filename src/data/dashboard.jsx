@@ -279,7 +279,7 @@ export default function DashboardComponents() {
             style={{ display: "flex", alignItems: "center", padding: "30px" }}
           >
             <ErrorIcon
-              style={{ fontSize: 80, color: "orange", marginRight: "20px" }}
+              style={{ fontSize: 80, color: "red", marginRight: "20px" }}
             />
             <div style={{ textAlign: "center" }}>
               <h3
@@ -310,7 +310,7 @@ export default function DashboardComponents() {
             <PublishedWithChangesIcon
               style={{
                 fontSize: 80,
-                color: "green",
+                color: "orange",
                 marginRight: "30px",
               }}
             />
@@ -342,7 +342,7 @@ export default function DashboardComponents() {
             <NotificationImportantIcon
               style={{
                 fontSize: 80,
-                color: "red",
+                color: "black",
                 marginRight: "30px",
               }}
             />
