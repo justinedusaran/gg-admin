@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import progressIcon from "../icons/progress-icon.svg";
-import pendingIcon from "../icons/pending-icon.svg";
-import norequestIcon from "../icons/noreq-icon.svg";
 import initializeFirebase from "./firebase/firebase";
 import { ref, get } from "firebase/database";
 import Paper from "@mui/material/Paper";
@@ -16,21 +13,9 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-
-const progIcon = L.icon({
-  iconUrl: progressIcon,
-  iconSize: [30, 30],
-});
-
-const pendIcon = L.icon({
-  iconUrl: pendingIcon,
-  iconSize: [30, 30],
-});
-
-const noreqIcon = L.icon({
-  iconUrl: norequestIcon,
-  iconSize: [30, 30],
-});
+import progressIcon from "../icons/progress-icon.svg";
+import pendingIcon from "../icons/pending-icon.svg";
+import norequestIcon from "../icons/noreq-icon.svg";
 
 export default function DeviceLocation() {
   const [rows, setRows] = useState([]);
@@ -47,8 +32,8 @@ export default function DeviceLocation() {
         const snapshot = await get(paramRef);
         const data = snapshot.val();
         if (data) {
-          const gutterLocations = Object.entries(data).map(
-            ([deviceId, deviceData]) => {
+          const gutterLocations = Object.entries(data)
+            .map(([deviceId, deviceData]) => {
               const {
                 name,
                 address,
@@ -73,23 +58,28 @@ export default function DeviceLocation() {
                 }
               }
 
-              const mappedMaintenanceStatus = {
-                inprogress: "In progress",
-                nomaintenancereq: "No maintenance required",
-                pending: "Pending",
-              };
+              // Check if latitude and longitude are valid numbers
+              const lat = parseFloat(latitude);
+              const lng = parseFloat(longitude);
+              if (isNaN(lat) || isNaN(lng)) {
+                console.error(
+                  `Invalid latitude or longitude for ${name}:`,
+                  latitude,
+                  longitude
+                );
+                return null; // Skip this entry
+              }
 
               return {
                 name,
                 address,
-                latitude,
-                longitude,
-                maintenanceStatus:
-                  mappedMaintenanceStatus[maintenanceStatus.toLowerCase()],
+                latitude: lat,
+                longitude: lng,
+                maintenanceStatus,
                 clogStatus,
               };
-            }
-          );
+            })
+            .filter((entry) => entry !== null);
 
           setRows(gutterLocations);
 
@@ -113,20 +103,17 @@ export default function DeviceLocation() {
     return () => {};
   }, []);
 
-  const cloggedRows = rows.filter((row) => row.clogStatus === "Clogged");
-
-  // Define icons for different maintenance statuses
-  const maintenanceIcons = {
-    "in progress": progIcon,
-    pending: pendIcon,
-    "no maintenance required": noreqIcon,
-  };
-
   const columns = [
     { id: "name", label: "Name", minWidth: 170 },
     { id: "maintenanceStatus", label: "Maintenance Status", minWidth: 170 },
   ];
 
+    const maintenanceStatusMapping = {
+      pending: "Pending",
+      nomaintenancereq: "No maintenance required",
+      inprogress: "In progress",
+  };
+  
   return (
     <Grid container spacing={3}>
       <Grid item xs={8}>
@@ -146,14 +133,30 @@ export default function DeviceLocation() {
             <Marker
               key={index}
               position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
-              icon={maintenanceIcons[row.maintenanceStatus.toLowerCase()]} // Select icon based on maintenance status
+              icon={
+                row.maintenanceStatus === "inprogress"
+                  ? L.icon({
+                      iconUrl: progressIcon,
+                      iconSize: [30, 30],
+                    })
+                  : row.maintenanceStatus === "pending"
+                  ? L.icon({
+                      iconUrl: pendingIcon,
+                      iconSize: [30, 30],
+                    })
+                  : L.icon({
+                      iconUrl: norequestIcon,
+                      iconSize: [30, 30],
+                    })
+              }
             >
               <Popup>
                 <div>
                   <h2>{row.name}</h2>
                   <p>Address: {row.address}</p>
                   <p>Clog Status: {row.clogStatus}</p>
-                  <p>Maintenance Status: {row.maintenanceStatus}</p>
+                  Maintenance Status:{" "}
+                  {maintenanceStatusMapping[row.maintenanceStatus]}{" "}
                 </div>
               </Popup>
             </Marker>
@@ -181,7 +184,7 @@ export default function DeviceLocation() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {cloggedRows.map((row, index) => (
+                {rows.map((row, index) => (
                   <TableRow key={index} hover role="checkbox" tabIndex={-1}>
                     {columns.map((column) => (
                       <TableCell

@@ -18,19 +18,6 @@ import progressIcon from "../icons/progress-icon.svg";
 import pendingIcon from "../icons/pending-icon.svg";
 import norequestIcon from "../icons/noreq-icon.svg";
 
-const progIcon = L.icon({
-  iconUrl: progressIcon,
-  iconSize: [30, 30],
-});
-const pendIcon = L.icon({
-  iconUrl: pendingIcon,
-  iconSize: [30, 30],
-});
-const noreqIcon = L.icon({
-  iconUrl: norequestIcon,
-  iconSize: [30, 30],
-});
-
 export default function DashboardComponents() {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -72,9 +59,7 @@ export default function DashboardComponents() {
                   status: status ? "Clogged" : "Cleared",
                 })
               );
-              // Sorting the clog events by timestamp
               clogEvents.sort((a, b) => a.timestamp - b.timestamp);
-              // Taking the latest clog status
               const latestClogEvent = clogEvents[clogEvents.length - 1];
               if (latestClogEvent) {
                 clogStatus = latestClogEvent.status;
@@ -90,7 +75,7 @@ export default function DashboardComponents() {
               maintenanceStatus,
               clogStatus,
               clogHistory,
-              isClogged, // Include isClogged in the object
+              isClogged, 
             };
           });
           setRows(gutterLocations);
@@ -137,7 +122,6 @@ export default function DashboardComponents() {
                   parseInt(timestamp.substring(2, 4))
                 );
 
-                // Check if the event date is within the current week
                 if (eventDate >= currentWeekStart && eventDate <= currentDate) {
                   const dayOfWeek = eventDate.getDay();
                   cloggingEvents[status ? "Clogged" : "Cleared"][dayOfWeek]++;
@@ -227,11 +211,7 @@ export default function DashboardComponents() {
     nomaintenancereq: "No maintenance required",
     inprogress: "In progress",
   };
-  const maintenanceStatusIcons = {
-    pending: pendIcon,
-    nomaintenancereq: noreqIcon,
-    inprogress: progIcon,
-  };
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
@@ -250,8 +230,28 @@ export default function DashboardComponents() {
           {rows.map((row, index) => (
             <Marker
               key={index}
-              position={[parseFloat(row.latitude), parseFloat(row.longitude)]}
-              icon={maintenanceStatusIcons[row.maintenanceStatus.toLowerCase()]}
+              position={[
+                !isNaN(parseFloat(row.latitude)) ? parseFloat(row.latitude) : 0,
+                !isNaN(parseFloat(row.longitude))
+                  ? parseFloat(row.longitude)
+                  : 0,
+              ]}
+              icon={
+                row.maintenanceStatus === "inprogress"
+                  ? L.icon({
+                      iconUrl: progressIcon,
+                      iconSize: [30, 30],
+                    })
+                  : row.maintenanceStatus === "pending"
+                  ? L.icon({
+                      iconUrl: pendingIcon,
+                      iconSize: [30, 30],
+                    })
+                  : L.icon({
+                      iconUrl: norequestIcon,
+                      iconSize: [30, 30],
+                    })
+              }
             >
               <Popup>
                 <div>
