@@ -58,7 +58,6 @@ export default function DeviceLocation() {
                 }
               }
 
-              // Check if latitude and longitude are valid numbers
               const lat = parseFloat(latitude);
               const lng = parseFloat(longitude);
               if (isNaN(lat) || isNaN(lng)) {
@@ -67,7 +66,7 @@ export default function DeviceLocation() {
                   latitude,
                   longitude
                 );
-                return null; // Skip this entry
+                return null;
               }
 
               return {
@@ -108,12 +107,12 @@ export default function DeviceLocation() {
     { id: "maintenanceStatus", label: "Maintenance Status", minWidth: 170 },
   ];
 
-    const maintenanceStatusMapping = {
-      pending: "Pending",
-      nomaintenancereq: "No maintenance required",
-      inprogress: "In progress",
+  const maintenanceStatusMapping = {
+    pending: "Pending",
+    nomaintenancereq: "No maintenance required",
+    inprogress: "In progress",
   };
-  
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={8}>
@@ -164,8 +163,15 @@ export default function DeviceLocation() {
         </MapContainer>
       </Grid>
       <Grid item xs={4}>
-        <Paper elevation={3} style={{ maxHeight: "525px", overflow: "auto" }}>
-          <Typography variant="h6" align="center" marginTop={3}>
+        <Paper
+          elevation={3}
+          sx={{ maxHeight: "525px", overflow: "auto", padding: 1 }}
+        >
+          <Typography
+            variant="h5"
+            align="center"
+            sx={{ fontWeight: "bold", marginBottom: 2, marginTop: 2 }}
+          >
             Clogged Gutters
           </Typography>
           <TableContainer>
@@ -192,7 +198,9 @@ export default function DeviceLocation() {
                         align="center"
                         style={{ minWidth: column.minWidth }}
                       >
-                        {row[column.id]}
+                        {column.id === "maintenanceStatus"
+                          ? maintenanceStatusMapping[row[column.id]]
+                          : row[column.id]}
                       </TableCell>
                     ))}
                   </TableRow>
