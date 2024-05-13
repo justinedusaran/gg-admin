@@ -31,6 +31,13 @@ export default function DashboardComponents() {
     inprogress: 0,
   });
 
+  // Define maintenanceStatusMapping object
+  const maintenanceStatusMapping = {
+    pending: "Pending",
+    nomaintenancereq: "No maintenance required",
+    inprogress: "In progress",
+  };
+
   useEffect(() => {
     const fetchDataFromFirebase = async () => {
       try {
@@ -75,7 +82,7 @@ export default function DashboardComponents() {
               maintenanceStatus,
               clogStatus,
               clogHistory,
-              isClogged, 
+              isClogged,
             };
           });
           setRows(gutterLocations);
@@ -87,19 +94,25 @@ export default function DashboardComponents() {
             ]);
           }
 
-          let counts = {
-            pending: 0,
-            nomaintenancereq: 0,
-            inprogress: 0,
-          };
+          let pendingMaintenanceCount = 0; // New variable to count pending maintenance
+          let underMaintenanceCount = 0; // Existing variable to count under maintenance
 
           gutterLocations.forEach((deviceData) => {
             if (deviceData.clogStatus === "Clogged") {
-              counts[deviceData.maintenanceStatus]++;
+              // Only count if clogged
+              pendingMaintenanceCount++;
+            }
+            if (deviceData.maintenanceStatus === "inprogress") {
+              underMaintenanceCount++;
             }
           });
 
-          setMaintenanceCounts(counts);
+          // Set the counts
+          setMaintenanceCounts({
+            pending: pendingMaintenanceCount,
+            nomaintenancereq: 0, // Keep this as 0 for now
+            inprogress: underMaintenanceCount,
+          });
 
           const currentDate = new Date();
           const currentWeekStart = new Date(
@@ -204,12 +217,6 @@ export default function DashboardComponents() {
       },
       options: options,
     });
-  };
-
-  const maintenanceStatusMapping = {
-    pending: "Pending",
-    nomaintenancereq: "No maintenance required",
-    inprogress: "In progress",
   };
 
   return (
