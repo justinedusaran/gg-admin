@@ -73,6 +73,12 @@ export default function DashboardComponents() {
                 clogHistory = clogEvents;
               }
             }
+
+            // Automatically clear clogged gutters if maintenanceStatus is "nomaintenancereq"
+            if (maintenanceStatus === "nomaintenancereq") {
+              clogStatus = "Cleared";
+            }
+
             return {
               deviceId,
               name,
@@ -94,23 +100,20 @@ export default function DashboardComponents() {
             ]);
           }
 
-          let pendingMaintenanceCount = 0; // New variable to count pending maintenance
-          let underMaintenanceCount = 0; // Existing variable to count under maintenance
-
-          gutterLocations.forEach((deviceData) => {
-            if (deviceData.clogStatus === "Clogged") {
-              // Only count if clogged
-              pendingMaintenanceCount++;
-            }
-            if (deviceData.maintenanceStatus === "inprogress") {
-              underMaintenanceCount++;
-            }
-          });
+          const pendingMaintenanceCount = gutterLocations.filter(
+            (deviceData) => deviceData.maintenanceStatus === "pending"
+          ).length;
+          const underMaintenanceCount = gutterLocations.filter(
+            (deviceData) => deviceData.maintenanceStatus === "inprogress"
+          ).length;
+          const noMaintenanceReqCount = gutterLocations.filter(
+            (deviceData) => deviceData.maintenanceStatus === "nomaintenancereq"
+          ).length;
 
           // Set the counts
           setMaintenanceCounts({
             pending: pendingMaintenanceCount,
-            nomaintenancereq: 0, // Keep this as 0 for now
+            nomaintenancereq: noMaintenanceReqCount,
             inprogress: underMaintenanceCount,
           });
 
@@ -265,10 +268,8 @@ export default function DashboardComponents() {
                   <h2>{row.name}</h2>
                   <p>Address: {row.address}</p>
                   <p>Clog Status: {row.clogStatus}</p>
-                  <p>
-                    Maintenance Status:{" "}
-                    {maintenanceStatusMapping[row.maintenanceStatus]}
-                  </p>
+                  Maintenance Status:{" "}
+                  {maintenanceStatusMapping[row.maintenanceStatus]}{" "}
                 </div>
               </Popup>
             </Marker>
