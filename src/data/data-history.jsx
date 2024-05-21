@@ -337,7 +337,7 @@ export default function DataHistory() {
                   <TableCell align="center">Timestamp</TableCell>
                   <TableCell align="center">Name</TableCell>
                   <TableCell align="center">Address</TableCell>
-                  <TableCell align="center">Clog Status</TableCell>
+                  <TableCell align="center">Overflow Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

@@ -249,7 +249,7 @@ export default function DashboardComponents() {
                 <div>
                   <h2>{row.name}</h2>
                   <p>Address: {row.address}</p>
-                  <p>Clog Status: {row.clogStatus}</p>
+                  <p>Overflow Status: {row.clogStatus}</p>
                   <p>
                     Maintenance Status:{" "}
                     {maintenanceStatusMapping[row.maintenanceStatus]}
@@ -345,7 +345,7 @@ export default function DashboardComponents() {
                   margin: "0",
                 }}
               >
-                Clogged Gutters
+                Overflowing Gutters
               </h3>
               <h1 style={{ margin: "0", fontSize: "50px" }}>
                 {rows.filter((row) => row.clogStatus === "Clogged").length}
