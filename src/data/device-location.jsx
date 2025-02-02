@@ -120,7 +120,7 @@ export default function DeviceLocation() {
           center={center}
           zoom={16}
           ref={mapRef}
-          style={{ height: "525px", width: "100%" }}
+          style={{ height: "425px", width: "100%" }}
           maxZoom={18}
           minZoom={14}
         >

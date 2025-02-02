@@ -261,7 +261,7 @@ export default function DashboardComponents() {
         </MapContainer>
       </Grid>
       <Grid item xs={12} md={6}>
-        <Paper style={{ height: "320px", width: "100%" }}>
+        <Paper style={{ height: "300px", width: "100%" }}>
           <canvas id="clogging-chart-week" />
         </Paper>
       </Grid>
@@ -279,6 +279,7 @@ export default function DashboardComponents() {
                   fontWeight: "normal",
                   margin: "0",
                   marginLeft: "10px",
+                  fontSize: 15,
                 }}
               >
                 Pending Maintenance

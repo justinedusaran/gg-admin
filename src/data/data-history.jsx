@@ -19,7 +19,7 @@ export default function DataHistory() {
   const colors = tokens(theme.palette.mode);
   const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const chartRefWeek = useRef(null);
   const chartRefMonth = useRef(null);
   const [cloggingData, setCloggingData] = useState([]);
@@ -385,7 +385,7 @@ export default function DataHistory() {
             </Table>
           </TableContainer>
           <TablePagination
-            rowsPerPageOptions={[8]}
+            rowsPerPageOptions={[6]}
             component="div"
             count={cloggingData.length}
             rowsPerPage={rowsPerPage}
